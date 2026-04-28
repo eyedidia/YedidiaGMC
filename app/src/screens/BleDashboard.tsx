@@ -1,89 +1,240 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Animated,
+  PermissionsAndroid,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  Platform,
+  Vibration,
+  View,
 } from 'react-native';
-import { PermissionsAndroid } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { BleEngine, BleStatus, VehicleStatus, BLE_COMMANDS } from '../services/bleEngine';
-import { loadPrivateKey } from '../services/gmCrypto';
+import * as gmCrypto from '../services/gmCrypto';
 import { useStore } from '../store';
+
+// ─── Design System ────────────────────────────────────────────────────────────
 
 const COLORS = {
   background: '#0A0E1A',
   card: '#111827',
+  cardBorder: '#1A2535',
   accent: '#E31837',
-  text: '#F0F4F8',
-  subtext: '#9CA3AF',
-  border: '#374151',
-  success: '#10B981',
-  warning: '#F59E0B',
-  info: '#3B82F6',
+  accentGlow: 'rgba(227, 24, 55, 0.3)',
+  green: '#22C55E',
+  orange: '#F59E0B',
+  blue: '#3B82F6',
+  gold: '#C8A951',
+  textPrimary: '#F0F4F8',
+  textSecondary: '#9CA3AF',
+  textMuted: '#6B7A8D',
+  inputBg: '#0D1420',
 };
 
-const STATUS_LABELS: Record<BleStatus, string> = {
+// ─── Status config ────────────────────────────────────────────────────────────
+
+const STATUS_LABEL: Record<BleStatus, string> = {
   idle: 'מנותק',
-  scanning: 'סורק...',
-  connecting: 'מתחבר...',
-  authenticating: 'מאמת...',
-  ready: 'מחובר ✓',
+  scanning: 'סורק',
+  connecting: 'מתחבר',
+  authenticating: 'מאמת',
+  ready: 'מחובר',
   error: 'שגיאה',
   disconnected: 'מנותק',
 };
 
-const STATUS_COLORS: Record<BleStatus, string> = {
-  idle: COLORS.subtext,
-  scanning: COLORS.info,
-  connecting: COLORS.warning,
-  authenticating: COLORS.warning,
-  ready: COLORS.success,
+const STATUS_COLOR: Record<BleStatus, string> = {
+  idle: COLORS.textMuted,
+  scanning: COLORS.orange,
+  connecting: COLORS.orange,
+  authenticating: COLORS.orange,
+  ready: COLORS.green,
   error: COLORS.accent,
-  disconnected: COLORS.subtext,
+  disconnected: COLORS.textMuted,
 };
 
-interface CommandButton {
+// ─── BLE permissions ──────────────────────────────────────────────────────────
+
+async function requestBlePermissions(): Promise<boolean> {
+  if (Platform.OS !== 'android') return true;
+  try {
+    if (Platform.Version >= 31) {
+      const res = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      ]);
+      return (
+        res[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === 'granted' &&
+        res[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] === 'granted'
+      );
+    }
+    const r = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+    return r === 'granted';
+  } catch {
+    return false;
+  }
+}
+
+// ─── Pulsing dot ──────────────────────────────────────────────────────────────
+
+const PulsingDot: React.FC<{ color: string }> = ({ color }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, { toValue: 1.5, duration: 600, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1.0, duration: 600, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [scale]);
+
+  return (
+    <Animated.View
+      style={[
+        pulsingDotStyles.dot,
+        { backgroundColor: color, transform: [{ scale }] },
+      ]}
+    />
+  );
+};
+
+const pulsingDotStyles = StyleSheet.create({
+  dot: { width: 10, height: 10, borderRadius: 5 },
+});
+
+// ─── Command definitions ──────────────────────────────────────────────────────
+
+interface CmdDef {
+  key: string;
   label: string;
   icon: string;
   command: number[];
-  color?: string;
+  fullWidth?: boolean;
 }
 
-const COMMAND_BUTTONS: CommandButton[] = [
-  { label: 'נעל', icon: '🔒', command: BLE_COMMANDS.LOCK },
-  { label: 'פתח', icon: '🔓', command: BLE_COMMANDS.UNLOCK },
-  { label: 'פתח נהג', icon: '🚗', command: BLE_COMMANDS.UNLOCK_DRIVER },
-  { label: 'הפעל', icon: '🟢', command: BLE_COMMANDS.START, color: COLORS.success },
-  { label: 'כבה', icon: '🔴', command: BLE_COMMANDS.STOP, color: COLORS.accent },
-  { label: 'תא מטען', icon: '🪝', command: BLE_COMMANDS.TRUNK },
-  { label: 'חלונות אוויר', icon: '🌬️', command: BLE_COMMANDS.WINDOWS_VENT },
-  { label: 'סגור חלונות', icon: '🪟', command: BLE_COMMANDS.WINDOWS_CLOSE },
-  { label: 'צפצף', icon: '📣', command: BLE_COMMANDS.HORN },
+const COMMANDS: CmdDef[] = [
+  { key: 'lock',          label: 'נעל',          icon: '🔒', command: BLE_COMMANDS.LOCK },
+  { key: 'unlock',        label: 'פתח',          icon: '🔓', command: BLE_COMMANDS.UNLOCK },
+  { key: 'start',         label: 'הנע מנוע',     icon: '🔑', command: BLE_COMMANDS.START },
+  { key: 'stop',          label: 'עצור מנוע',    icon: '⛔', command: BLE_COMMANDS.STOP },
+  { key: 'trunk',         label: 'פתח מטען',     icon: '📦', command: BLE_COMMANDS.TRUNK },
+  { key: 'unlock_driver', label: 'פתח דלת נהג',  icon: '🚪', command: BLE_COMMANDS.UNLOCK_DRIVER },
+  { key: 'windows_vent',  label: 'פתח חלונות',   icon: '🪟', command: BLE_COMMANDS.WINDOWS_VENT },
+  { key: 'windows_close', label: 'סגור חלונות',  icon: '❎', command: BLE_COMMANDS.WINDOWS_CLOSE },
+  { key: 'horn',          label: 'צופר + אורות', icon: '📯', command: BLE_COMMANDS.HORN, fullWidth: true },
 ];
 
-export default function BleDashboard(): React.JSX.Element {
+// ─── StatusCell ───────────────────────────────────────────────────────────────
+
+const StatusCell: React.FC<{ icon: string; label: string; color: string }> = ({ icon, label, color }) => (
+  <View style={statusCellStyles.cell}>
+    <Text style={statusCellStyles.icon}>{icon}</Text>
+    <Text style={[statusCellStyles.label, { color }]}>{label}</Text>
+  </View>
+);
+
+const statusCellStyles = StyleSheet.create({
+  cell: { flex: 1, alignItems: 'center', paddingVertical: 8, minWidth: '25%' },
+  icon: { fontSize: 22, marginBottom: 4 },
+  label: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
+});
+
+// ─── CmdButton ────────────────────────────────────────────────────────────────
+
+interface CmdButtonProps {
+  cmd: CmdDef;
+  enabled: boolean;
+  loading: boolean;
+  onPress: () => void;
+  fullWidth?: boolean;
+}
+
+const CmdButton: React.FC<CmdButtonProps> = ({ cmd, enabled, loading, onPress, fullWidth }) => (
+  <TouchableOpacity
+    style={[
+      cmdBtnStyles.btn,
+      fullWidth && cmdBtnStyles.fullWidth,
+      !enabled && cmdBtnStyles.disabled,
+    ]}
+    onPress={onPress}
+    disabled={!enabled || loading}
+    activeOpacity={0.75}>
+    {loading ? (
+      <ActivityIndicator color={COLORS.textPrimary} size="small" />
+    ) : (
+      <>
+        <Text style={cmdBtnStyles.icon}>{cmd.icon}</Text>
+        <Text style={cmdBtnStyles.label}>{cmd.label}</Text>
+      </>
+    )}
+  </TouchableOpacity>
+);
+
+const cmdBtnStyles = StyleSheet.create({
+  btn: {
+    flex: 1,
+    backgroundColor: COLORS.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 10,
+    minHeight: 80,
+  },
+  fullWidth: {
+    flex: 0,
+    width: '100%',
+    flexDirection: 'row',
+    gap: 10,
+    paddingVertical: 16,
+  },
+  disabled: { opacity: 0.35 },
+  icon: { fontSize: 26, marginBottom: 6 },
+  label: { color: COLORS.textPrimary, fontSize: 12, fontWeight: '600', textAlign: 'center' },
+});
+
+// ─── BleDashboard ─────────────────────────────────────────────────────────────
+
+interface Props {
+  navigation: any;
+}
+
+const BleDashboard: React.FC<Props> = ({ navigation }) => {
+  const user = useStore(s => s.user);
+  const vehicle = user?.vehicles?.[0] ?? null;
+  const daysLeft = user?.daysLeft;
+
   const [bleStatus, setBleStatus] = useState<BleStatus>('idle');
   const [vehicleStatus, setVehicleStatus] = useState<VehicleStatus | null>(null);
-  const [commandLoading, setCommandLoading] = useState<string | null>(null);
-  const engineRef = useRef<BleEngine | null>(null);
-  const navigation = useNavigation();
-  const user = useStore(s => s.user);
+  const [rssi, setRssi] = useState<number | null>(null);
+  const [loadingCmd, setLoadingCmd] = useState<string | null>(null);
+  const [connectLoading, setConnectLoading] = useState(false);
+  const [noKeyPrompt, setNoKeyPrompt] = useState(false);
 
-  const selectedVehicle = user?.vehicles?.[0] ?? null;
+  const engineRef = useRef<BleEngine | null>(null);
 
   const initEngine = useCallback(() => {
-    const engine = new BleEngine({
-      onStatusChange: status => setBleStatus(status),
-      onVehicleStatus: status => setVehicleStatus(status),
-      onError: err => Alert.alert('שגיאת BLE', err),
+    const eng = new BleEngine({
+      onStatusChange: (s) => setBleStatus(s),
+      onVehicleStatus: (vs) => setVehicleStatus(vs),
+      onRssi: (r) => setRssi(r),
+      onError: (msg) => {
+        setBleStatus('error');
+        console.warn('BLE error:', msg);
+      },
     });
-    engine.initialize().catch(() => {});
-    engineRef.current = engine;
+    eng.initialize().catch(() => {});
+    engineRef.current = eng;
   }, []);
 
   useEffect(() => {
@@ -94,345 +245,371 @@ export default function BleDashboard(): React.JSX.Element {
     };
   }, [initEngine]);
 
-  const requestBlePermissions = async (): Promise<boolean> => {
-    if (Platform.OS !== 'android') {
-      return true;
-    }
-    try {
-      if (Platform.Version >= 31) {
-        const results = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-        ]);
-        return (
-          results[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === 'granted' &&
-          results[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] === 'granted'
-        );
-      } else {
-        const r = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        );
-        return r === 'granted';
-      }
-    } catch {
-      return false;
-    }
-  };
-
   const handleConnect = async () => {
-    if (!selectedVehicle) {
-      Alert.alert(
-        'אין רכב',
-        'לא נמצא רכב משויך לחשבון. נא לרשום רכב תחילה.',
-        [
-          { text: 'בטל', style: 'cancel' },
-          {
-            text: 'רשום רכב',
-            onPress: () => (navigation as any).navigate('Enrollment'),
-          },
-        ],
-      );
-      return;
-    }
-
-    const hasPerms = await requestBlePermissions();
-    if (!hasPerms) {
-      Alert.alert('שגיאה', 'הרשאות Bluetooth נדחו');
-      return;
-    }
-
-    const vin = selectedVehicle.vin;
-    const privateKey = await loadPrivateKey(vin);
-    if (!privateKey) {
-      Alert.alert(
-        'אין מפתח',
-        'לא נמצא מפתח דיגיטלי לרכב זה. נא לרשום את הרכב תחילה.',
-        [
-          { text: 'בטל', style: 'cancel' },
-          {
-            text: 'רשום',
-            onPress: () => (navigation as any).navigate('Enrollment'),
-          },
-        ],
-      );
-      return;
-    }
-
-    // keyId placeholder — in real flow it's stored alongside the private key
-    const keyId = '00000000';
-
+    if (!vehicle) return;
+    setConnectLoading(true);
     try {
-      await engineRef.current?.connect(vin, keyId, privateKey);
-    } catch (err) {
-      Alert.alert('שגיאה', String(err));
+      const hasPerms = await requestBlePermissions();
+      if (!hasPerms) {
+        setBleStatus('error');
+        setConnectLoading(false);
+        return;
+      }
+      const privateKey = await gmCrypto.loadPrivateKey(vehicle.vin);
+      if (!privateKey) {
+        setNoKeyPrompt(true);
+        setConnectLoading(false);
+        return;
+      }
+      setNoKeyPrompt(false);
+      const keyId = '00000000';
+      await engineRef.current?.connect(vehicle.vin, keyId, privateKey);
+    } catch {
+      setBleStatus('error');
+    } finally {
+      setConnectLoading(false);
     }
   };
 
   const handleDisconnect = async () => {
     await engineRef.current?.disconnect();
     setVehicleStatus(null);
+    setRssi(null);
   };
 
-  const handleCommand = async (btn: CommandButton) => {
-    if (bleStatus !== 'ready') {
-      Alert.alert('לא מחובר', 'נא להתחבר לרכב תחילה');
-      return;
-    }
-    setCommandLoading(btn.label);
+  const handleCmd = async (cmd: CmdDef) => {
+    Vibration.vibrate(40);
+    setLoadingCmd(cmd.key);
     try {
-      await engineRef.current?.sendCommand(btn.command);
-    } catch (err) {
-      Alert.alert('שגיאה', String(err));
+      await engineRef.current?.sendCommand(cmd.command);
+      Vibration.vibrate([0, 50, 50, 50]);
+    } catch {
+      // BleEngine surfaces errors via onError callback
     } finally {
-      setCommandLoading(null);
+      setLoadingCmd(null);
     }
   };
 
-  const isConnecting = ['scanning', 'connecting', 'authenticating'].includes(bleStatus);
-  const isReady = bleStatus === 'ready';
+  const isConnected = bleStatus === 'ready';
+  const isAnimating =
+    bleStatus === 'scanning' ||
+    bleStatus === 'connecting' ||
+    bleStatus === 'authenticating';
+  const statusColor = STATUS_COLOR[bleStatus];
+  const daysLeftWarn = daysLeft !== undefined && daysLeft > 0 && daysLeft < 30;
+
+  const pairedCmds = COMMANDS.filter(c => !c.fullWidth);
+  const fullWidthCmds = COMMANDS.filter(c => c.fullWidth);
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.pageTitle}>שליטה</Text>
-        {selectedVehicle && (
-          <Text style={styles.vehicleName}>
-            {selectedVehicle.nickname ?? selectedVehicle.vin}
-          </Text>
-        )}
-      </View>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent}>
 
-      {/* Status card */}
-      <View style={styles.statusCard}>
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>סטטוס BLE</Text>
-          <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[bleStatus] + '22' }]}>
-            <View style={[styles.statusDot, { backgroundColor: STATUS_COLORS[bleStatus] }]} />
-            <Text style={[styles.statusText, { color: STATUS_COLORS[bleStatus] }]}>
-              {STATUS_LABELS[bleStatus]}
+        {/* License warning banner */}
+        {daysLeftWarn && (
+          <View style={styles.warningBanner}>
+            <Text style={styles.warningText}>
+              {'⚠️ הרישיון פג בעוד ' + String(daysLeft) + ' ימים — פנה לידידיה'}
             </Text>
           </View>
+        )}
+
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.vehicleName}>
+              {vehicle?.nickname ?? vehicle?.vin ?? 'אין רכב'}
+            </Text>
+            {vehicle?.vin ? (
+              <Text style={styles.vehicleVin} numberOfLines={1}>
+                {vehicle.vin}
+              </Text>
+            ) : null}
+            <Text style={styles.userName}>{user?.name ?? ''}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.enrollBtn}
+            onPress={() => navigation.navigate('Enrollment')}
+            activeOpacity={0.8}>
+            <Text style={styles.enrollBtnText}>🔑</Text>
+          </TouchableOpacity>
         </View>
 
-        {vehicleStatus && (
-          <View style={styles.vehicleStatusGrid}>
-            <StatusPill label="נעול" active={vehicleStatus.isLocked} icon="🔒" />
-            <StatusPill label="פועל" active={vehicleStatus.isRunning} icon="🟢" />
-            <StatusPill label="תא מטען" active={vehicleStatus.trunkOpen} icon="🪝" alertWhenActive />
-            <StatusPill label="דלת פתוחה" active={vehicleStatus.doorOpen} icon="🚪" alertWhenActive />
-            <StatusPill label="סוללה חלשה" active={vehicleStatus.batteryLow} icon="🔋" alertWhenActive />
-            <StatusPill label="טעינה" active={vehicleStatus.charging} icon="⚡" />
-          </View>
-        )}
-
-        {/* Connect / Disconnect */}
-        {!isReady && !isConnecting && (
-          <TouchableOpacity style={styles.connectButton} onPress={handleConnect}>
-            <Text style={styles.connectButtonText}>📡 התחבר לרכב</Text>
-          </TouchableOpacity>
-        )}
-        {isConnecting && (
-          <View style={styles.connectingRow}>
-            <ActivityIndicator color={COLORS.accent} size="small" />
-            <Text style={styles.connectingText}>{STATUS_LABELS[bleStatus]}</Text>
-          </View>
-        )}
-        {isReady && (
-          <TouchableOpacity style={styles.disconnectButton} onPress={handleDisconnect}>
-            <Text style={styles.disconnectButtonText}>⛔ נתק</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Command grid */}
-      <Text style={styles.sectionTitle}>פקודות</Text>
-      <View style={styles.commandGrid}>
-        {COMMAND_BUTTONS.map(btn => (
-          <TouchableOpacity
-            key={btn.label}
-            style={[
-              styles.commandButton,
-              !isReady && styles.commandButtonDisabled,
-            ]}
-            onPress={() => handleCommand(btn)}
-            disabled={!isReady || commandLoading !== null}>
-            {commandLoading === btn.label ? (
-              <ActivityIndicator color="#fff" size="small" />
+        {/* Connection status bar */}
+        <View style={[styles.statusBar, { borderColor: statusColor + '44' }]}>
+          <View style={styles.statusLeft}>
+            {isAnimating ? (
+              <PulsingDot color={statusColor} />
             ) : (
-              <>
-                <Text style={styles.commandIcon}>{btn.icon}</Text>
-                <Text
-                  style={[
-                    styles.commandLabel,
-                    btn.color ? { color: btn.color } : null,
-                  ]}>
-                  {btn.label}
-                </Text>
-              </>
+              <View style={[styles.staticDot, { backgroundColor: statusColor }]} />
+            )}
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {STATUS_LABEL[bleStatus]}
+            </Text>
+          </View>
+          {isConnected && rssi !== null && (
+            <Text style={styles.rssiText}>{'📶 ' + String(rssi) + ' dBm'}</Text>
+          )}
+        </View>
+
+        {/* Connect / Disconnect button */}
+        {!isConnected ? (
+          <TouchableOpacity
+            style={[
+              styles.connectBtn,
+              (connectLoading || isAnimating) && styles.btnDisabled,
+            ]}
+            onPress={handleConnect}
+            disabled={connectLoading || isAnimating}
+            activeOpacity={0.85}>
+            {connectLoading || isAnimating ? (
+              <ActivityIndicator color={COLORS.textPrimary} />
+            ) : (
+              <Text style={styles.connectBtnText}>🔗 התחבר לרכב (BLE)</Text>
             )}
           </TouchableOpacity>
-        ))}
-      </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.disconnectBtn}
+            onPress={handleDisconnect}
+            activeOpacity={0.85}>
+            <Text style={styles.disconnectBtnText}>✕ נתק</Text>
+          </TouchableOpacity>
+        )}
 
-      {/* No vehicle enrolled hint */}
-      {!selectedVehicle && (
-        <View style={styles.enrollHint}>
-          <Text style={styles.enrollHintText}>
-            לא נמצא רכב משויך. עבור להגדרות כדי לרשום רכב.
-          </Text>
+        {/* No key enrollment prompt */}
+        {noKeyPrompt && (
+          <View style={styles.enrollPrompt}>
+            <Text style={styles.enrollPromptText}>
+              לא נמצא מפתח דיגיטלי לרכב זה. נדרש Enrollment חד-פעמי.
+            </Text>
+            <TouchableOpacity
+              style={styles.enrollPromptBtn}
+              onPress={() => navigation.navigate('Enrollment')}
+              activeOpacity={0.85}>
+              <Text style={styles.enrollPromptBtnText}>עבור ל-Enrollment</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Vehicle status card */}
+        {isConnected && vehicleStatus && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>סטטוס רכב</Text>
+            <View style={styles.statusGrid}>
+              <StatusCell
+                icon={vehicleStatus.isLocked ? '🔒' : '🔓'}
+                label={vehicleStatus.isLocked ? 'נעול' : 'פתוח'}
+                color={vehicleStatus.isLocked ? COLORS.green : COLORS.orange}
+              />
+              <StatusCell
+                icon={vehicleStatus.isRunning ? '▶️' : '🚗'}
+                label={vehicleStatus.isRunning ? 'פועל' : 'כבוי'}
+                color={vehicleStatus.isRunning ? COLORS.green : COLORS.textMuted}
+              />
+              <StatusCell
+                icon={vehicleStatus.doorOpen ? '🚪' : '🚘'}
+                label={vehicleStatus.doorOpen ? 'דלתות פתוחות' : 'דלתות סגורות'}
+                color={vehicleStatus.doorOpen ? COLORS.orange : COLORS.textMuted}
+              />
+              {vehicleStatus.charging !== undefined && (
+                <StatusCell
+                  icon={
+                    vehicleStatus.charging
+                      ? '⚡'
+                      : vehicleStatus.chargingConnected
+                      ? '🔌'
+                      : '🔋'
+                  }
+                  label={
+                    vehicleStatus.charging
+                      ? 'טוען'
+                      : vehicleStatus.chargingConnected
+                      ? 'מחובר'
+                      : 'לא מחובר'
+                  }
+                  color={vehicleStatus.charging ? COLORS.green : COLORS.textMuted}
+                />
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Commands grid */}
+        <Text style={styles.sectionTitle}>פקודות</Text>
+        <View style={styles.commandGrid}>
+          {pairedCmds.map((cmd, idx) => {
+            if (idx % 2 !== 0) return null;
+            const next = pairedCmds[idx + 1];
+            return (
+              <View key={cmd.key} style={styles.cmdRow}>
+                <CmdButton
+                  cmd={cmd}
+                  enabled={isConnected}
+                  loading={loadingCmd === cmd.key}
+                  onPress={() => handleCmd(cmd)}
+                />
+                {next ? (
+                  <CmdButton
+                    cmd={next}
+                    enabled={isConnected}
+                    loading={loadingCmd === next.key}
+                    onPress={() => handleCmd(next)}
+                  />
+                ) : (
+                  <View style={styles.cmdPlaceholder} />
+                )}
+              </View>
+            );
+          })}
+          {fullWidthCmds.map(cmd => (
+            <CmdButton
+              key={cmd.key}
+              cmd={cmd}
+              enabled={isConnected}
+              loading={loadingCmd === cmd.key}
+              onPress={() => handleCmd(cmd)}
+              fullWidth
+            />
+          ))}
         </View>
-      )}
-    </ScrollView>
+
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
 
-// ─── StatusPill ───────────────────────────────────────────────────────────────
-
-interface StatusPillProps {
-  label: string;
-  active: boolean;
-  icon: string;
-  alertWhenActive?: boolean;
-}
-
-function StatusPill({ label, active, icon, alertWhenActive }: StatusPillProps) {
-  const activeColor = alertWhenActive ? COLORS.warning : COLORS.success;
-  const color = active ? activeColor : COLORS.subtext;
-  return (
-    <View style={[pillStyles.pill, { borderColor: active ? color + '66' : COLORS.border }]}>
-      <Text style={pillStyles.icon}>{icon}</Text>
-      <Text style={[pillStyles.label, { color }]}>{label}</Text>
-    </View>
-  );
-}
-
-const pillStyles = StyleSheet.create({
-  pill: {
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    minWidth: '30%',
-    flex: 1,
-    margin: 4,
-  },
-  icon: { fontSize: 20, marginBottom: 2 },
-  label: { fontSize: 11, fontWeight: '600' },
-});
+export default BleDashboard;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: COLORS.background },
-  container: { padding: 16, paddingBottom: 32 },
-  header: { marginBottom: 16 },
-  pageTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: COLORS.text,
+  safe: { flex: 1, backgroundColor: COLORS.background },
+  root: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 40 },
+
+  warningBanner: {
+    backgroundColor: COLORS.orange,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 14,
   },
-  vehicleName: {
-    fontSize: 14,
-    color: COLORS.subtext,
+  warningText: { color: '#000', fontSize: 13, fontWeight: '700', textAlign: 'center' },
+
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  headerLeft: { flex: 1 },
+  vehicleName: { fontSize: 26, fontWeight: '800', color: COLORS.textPrimary },
+  vehicleVin: {
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontSize: 12,
+    color: COLORS.textMuted,
     marginTop: 2,
+    letterSpacing: 1,
   },
-  statusCard: {
+  userName: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
+  enrollBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: COLORS.card,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 20,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.cardBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
   },
-  statusRow: {
+  enrollBtnText: { fontSize: 22 },
+
+  statusBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     marginBottom: 12,
   },
-  statusLabel: { color: COLORS.subtext, fontSize: 14 },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  statusText: { fontSize: 13, fontWeight: '600' },
-  vehicleStatusGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginVertical: 8,
-    marginHorizontal: -4,
-  },
-  connectButton: {
+  statusLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  staticDot: { width: 10, height: 10, borderRadius: 5 },
+  statusText: { fontSize: 14, fontWeight: '700' },
+  rssiText: { color: COLORS.textSecondary, fontSize: 13 },
+
+  connectBtn: {
     backgroundColor: COLORS.accent,
-    borderRadius: 10,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 14,
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  connectBtnText: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '700' },
+  disconnectBtn: {
+    backgroundColor: COLORS.card,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+  },
+  disconnectBtnText: { color: COLORS.textSecondary, fontSize: 15, fontWeight: '600' },
+  btnDisabled: { opacity: 0.5 },
+
+  enrollPrompt: {
+    backgroundColor: 'rgba(227,24,55,0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(227,24,55,0.25)',
     padding: 14,
-    alignItems: 'center',
-    marginTop: 8,
+    marginBottom: 14,
+    gap: 10,
   },
-  connectButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  connectingRow: {
-    flexDirection: 'row',
+  enrollPromptText: { color: COLORS.textSecondary, fontSize: 13, textAlign: 'right' },
+  enrollPromptBtn: {
+    backgroundColor: COLORS.accent,
+    borderRadius: 8,
+    paddingVertical: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    gap: 8,
   },
-  connectingText: { color: COLORS.subtext, fontSize: 14 },
-  disconnectButton: {
-    backgroundColor: COLORS.border,
-    borderRadius: 10,
-    padding: 12,
-    alignItems: 'center',
-    marginTop: 8,
+  enrollPromptBtnText: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '700' },
+
+  card: {
+    backgroundColor: COLORS.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    padding: 14,
+    marginBottom: 20,
   },
-  disconnectButtonText: { color: COLORS.subtext, fontWeight: '600', fontSize: 14 },
+  cardTitle: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'right',
+  },
+  statusGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: 10,
+    textAlign: 'right',
   },
-  commandGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
-  },
-  commandButton: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '30%',
-    margin: '1.5%',
-    minHeight: 72,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  commandButtonDisabled: {
-    opacity: 0.4,
-  },
-  commandIcon: { fontSize: 24, marginBottom: 4 },
-  commandLabel: { color: COLORS.text, fontSize: 11, fontWeight: '600', textAlign: 'center' },
-  enrollHint: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  enrollHintText: { color: COLORS.subtext, textAlign: 'center', fontSize: 14 },
+  commandGrid: { gap: 10 },
+  cmdRow: { flexDirection: 'row', gap: 10 },
+  cmdPlaceholder: { flex: 1 },
 });

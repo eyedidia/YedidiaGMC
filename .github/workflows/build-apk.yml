@@ -11,7 +11,7 @@ jobs:
   build-debug:
     name: Debug APK
     runs-on: ubuntu-latest
-    if: github.ref_type == 'branch'
+    if: "!startsWith(github.ref, 'refs/tags/v')"
 
     steps:
       - uses: actions/checkout@v4
@@ -27,16 +27,35 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: app/package.json
 
       - name: Install dependencies
         working-directory: app
-        run: npm ci
+        run: npm install
 
       - name: Set API base URL
         working-directory: app
         run: |
-          sed -i "s|https://your-server.com/api|${{ secrets.API_BASE_URL }}|g" src/services/api.ts
+          API_URL="${{ secrets.API_BASE_URL }}"
+          if [ -n "$API_URL" ]; then
+            sed -i "s|https://your-server.com/api|$API_URL|g" src/services/api.ts
+          fi
+
+      - name: Download Gradle wrapper JAR
+        working-directory: app/android
+        run: |
+          curl -Lo gradle/wrapper/gradle-wrapper.jar \
+            "https://github.com/gradle/gradle/raw/v8.3.0/gradle/wrapper/gradle-wrapper.jar"
+
+      - name: Generate debug keystore
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US" 2>/dev/null || true
 
       - name: Make Gradlew executable
         working-directory: app/android
@@ -56,7 +75,7 @@ jobs:
   build-release:
     name: Release APK
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/v')
+    if: "startsWith(github.ref, 'refs/tags/v')"
 
     steps:
       - uses: actions/checkout@v4
@@ -72,21 +91,31 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: app/package.json
 
       - name: Install dependencies
         working-directory: app
-        run: npm ci
+        run: npm install
 
       - name: Set API base URL
         working-directory: app
         run: |
           sed -i "s|https://your-server.com/api|${{ secrets.API_BASE_URL }}|g" src/services/api.ts
 
+      - name: Download Gradle wrapper JAR
+        working-directory: app/android
+        run: |
+          curl -Lo gradle/wrapper/gradle-wrapper.jar \
+            "https://github.com/gradle/gradle/raw/v8.3.0/gradle/wrapper/gradle-wrapper.jar"
+
       - name: Decode keystore
         working-directory: app/android/app
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > yedidiagmc.keystore
+
+      - name: Make Gradlew executable
+        working-directory: app/android
+        run: chmod +x gradlew
 
       - name: Build Release APK
         working-directory: app/android
