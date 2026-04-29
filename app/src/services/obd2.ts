@@ -2,6 +2,11 @@
 // Real OBD2 BLE integration is complex and beyond current scope.
 // All methods return mock/placeholder data.
 
+export interface DTC {
+  code: string;
+  description: string;
+}
+
 export interface OBD2Data {
   engineRPM?: number;
   vehicleSpeed?: number;
