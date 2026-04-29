@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YedidiaGMC Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0A0E1A;--card:#111827;--border:#1A2535;--accent:#E31837;--green:#22C55E;--orange:#F59E0B;--blue:#3B82F6;--text:#F0F4F8;--sub:#9CA3AF;--muted:#6B7A8D;--input:#0D1420}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;border:none;font-family:inherit;font-size:13px;border-radius:8px;padding:7px 14px;transition:opacity .15s}
+button:hover{opacity:.85}
+input,select{background:var(--input);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px;width:100%;font-family:inherit}
+input:focus,select:focus{outline:2px solid var(--accent)}
+label{display:block;font-size:13px;color:var(--sub);margin-bottom:5px}
+.field{margin-bottom:14px}
+
+/* Login */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.loginBox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px;width:360px}
+.loginLogo{text-align:center;margin-bottom:28px}
+.loginLogo h1{font-size:22px;font-weight:800;color:var(--accent)}
+.loginLogo p{color:var(--sub);font-size:13px;margin-top:4px}
+.btnPrimary{background:var(--accent);color:#fff;width:100%;padding:11px;font-size:15px;font-weight:700}
+.err{background:rgba(227,24,55,.12);border:1px solid rgba(227,24,55,.3);border-radius:8px;padding:10px 12px;color:var(--accent);font-size:13px;margin-bottom:14px;display:none}
+
+/* Layout */
+#app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.brand{font-size:17px;font-weight:800;color:var(--accent)}
+.tabs{display:flex;gap:4px}
+.tab{background:none;color:var(--sub);padding:7px 14px;border-radius:8px;font-size:14px}
+.tab.active{background:rgba(227,24,55,.15);color:var(--accent)}
+.btnLogout{background:rgba(255,255,255,.06);color:var(--sub)}
+.main{padding:24px;max-width:1200px;margin:0 auto;width:100%}
+
+/* Page */
+.page{display:none}
+.page.active{display:block}
+.pageTitle{font-size:20px;font-weight:800;margin-bottom:20px}
+
+/* Cards */
+.statsRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.statCard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.statCard .val{font-size:28px;font-weight:800;line-height:1}
+.statCard .lbl{color:var(--sub);font-size:12px;margin-top:4px}
+
+/* Table */
+.tableWrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:rgba(255,255,255,.04);padding:10px 14px;text-align:right;color:var(--sub);font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-pending{background:rgba(245,158,11,.15);color:var(--orange)}
+.badge-approved{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-suspended{background:rgba(227,24,55,.15);color:var(--accent)}
+.badge-rejected{background:rgba(156,163,175,.15);color:var(--sub)}
+
+/* Action buttons */
+.btnSm{padding:5px 10px;font-size:12px;border-radius:6px}
+.btnGreen{background:rgba(34,197,94,.2);color:var(--green)}
+.btnRed{background:rgba(227,24,55,.2);color:var(--accent)}
+.btnOrange{background:rgba(245,158,11,.2);color:var(--orange)}
+.btnBlue{background:rgba(59,130,246,.2);color:var(--blue)}
+.actBtns{display:flex;gap:5px;flex-wrap:wrap}
+
+/* Form */
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.formCard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px}
+.formCard h3{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--sub)}
+@media(max-width:600px){.formGrid{grid-template-columns:1fr}}
+
+/* Filter bar */
+.filterBar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filterBtn{background:var(--card);border:1px solid var(--border);color:var(--sub);padding:6px 14px;border-radius:8px;font-size:13px}
+.filterBtn.active{border-color:var(--accent);color:var(--accent)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:14px;z-index:999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.show{display:block}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--accent);color:var(--accent)}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:17px;font-weight:800;margin-bottom:18px}
+.credBox{background:var(--input);border-radius:8px;padding:14px;font-family:monospace;font-size:13px;line-height:1.8;margin-bottom:16px;white-space:pre-wrap}
+.sectionTitle{font-size:14px;font-weight:700;color:var(--sub);margin:20px 0 12px}
+
+/* Section header */
+.secHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginPage">
+  <div class="loginBox">
+    <div class="loginLogo">
+      <h1>🚗 YedidiaGMC</h1>
+      <p>פאנל ניהול</p>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <div class="field"><label>אימייל</label><input type="email" id="loginEmail" placeholder="admin@yedidiagmc.local"></div>
+    <div class="field"><label>סיסמה</label><input type="password" id="loginPwd"></div>
+    <button class="btnPrimary" id="loginBtn">כניסה</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="topbar">
+    <span class="brand">🚗 YedidiaGMC Admin</span>
+    <div class="tabs">
+      <button class="tab active" onclick="showPage('dashboard')">📊 דשבורד</button>
+      <button class="tab" onclick="showPage('users')">👥 משתמשים</button>
+      <button class="tab" onclick="showPage('createUser')">➕ צור משתמש</button>
+      <button class="tab" onclick="showPage('vehicles')">🚗 רכבים</button>
+      <button class="tab" onclick="showPage('logs')">📋 לוג</button>
+    </div>
+    <button class="btnLogout btnSm" onclick="logout()">התנתק</button>
+  </div>
+  <div class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="pageTitle">דשבורד</div>
+      <div class="statsRow" id="statsRow"></div>
+      <div class="secHeader"><span class="sectionTitle" style="margin:0">ממתינים לאישור</span></div>
+      <div class="tableWrap"><table id="pendingTable">
+        <thead><tr><th>שם</th><th>אימייל</th><th>טלפון</th><th>VIN</th><th>תאריך</th><th>פעולות</th></tr></thead>
+        <tbody id="pendingBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- Users -->
+    <div class="page" id="page-users">
+      <div class="pageTitle">משתמשים</div>
+      <div class="filterBar">
+        <button class="filterBtn active" onclick="filterUsers('',this)">הכל</button>
+        <button class="filterBtn" onclick="filterUsers('pending',this)">ממתין</button>
+        <button class="filterBtn" onclick="filterUsers('approved',this)">מאושר</button>
+        <button class="filterBtn" onclick="filterUsers('suspended',this)">מושהה</button>
+        <button class="filterBtn" onclick="filterUsers('rejected',this)">נדחה</button>
+      </div>
+      <div class="tableWrap"><table>
+        <thead><tr><th>שם</th><th>אימייל</th><th>סטטוס</th><th>רישיון עד</th><th>ימים</th><th>VIN</th><th>Enrollment</th><th>פעולות</th></tr></thead>
+        <tbody id="usersBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- Create User -->
+    <div class="page" id="page-createUser">
+      <div class="pageTitle">צור משתמש חדש</div>
+      <form id="createUserForm" onsubmit="submitCreateUser(event)">
+        <div class="formCard">
+          <h3>פרטים אישיים</h3>
+          <div class="formGrid">
+            <div class="field"><label>שם מלא *</label><input required id="cu_name" placeholder="ישראל כהן"></div>
+            <div class="field"><label>אימייל *</label><input required type="email" id="cu_email" placeholder="user@email.com"></div>
+            <div class="field"><label>טלפון</label><input id="cu_phone" placeholder="050-0000000"></div>
+            <div class="field"><label>סיסמה זמנית *</label><input required id="cu_password" placeholder="TempPass123!"></div>
+          </div>
+        </div>
+        <div class="formCard">
+          <h3>רכב</h3>
+          <div class="formGrid">
+            <div class="field"><label>VIN *</label><input required id="cu_vin" maxlength="17" placeholder="1GKKNLLS0NZ123456" oninput="this.value=this.value.toUpperCase()"></div>
+            <div class="field"><label>כינוי רכב</label><input id="cu_nickname" placeholder="הטנדר שלי"></div>
+          </div>
+        </div>
+        <div class="formCard">
+          <h3>חשבון myGMC</h3>
+          <div class="formGrid">
+            <div class="field"><label>אימייל GM</label><input type="email" id="cu_gmUser" placeholder="gm@email.com"></div>
+            <div class="field"><label>סיסמת GM</label><input type="password" id="cu_gmPass"></div>
+          </div>
+        </div>
+        <div class="formCard">
+          <h3>רישיון</h3>
+          <div class="formGrid">
+            <div class="field"><label>שנות רישיון</label><select id="cu_years"><option value="1">שנה אחת</option><option value="2">שנתיים</option><option value="3" selected>3 שנים</option><option value="5">5 שנים</option></select></div>
+          </div>
+        </div>
+        <button type="submit" class="btnPrimary" id="createUserBtn" style="min-width:160px">➕ צור משתמש</button>
+      </form>
+    </div>
+
+    <!-- Vehicles -->
+    <div class="page" id="page-vehicles">
+      <div class="pageTitle">רכבים</div>
+      <div class="tableWrap"><table>
+        <thead><tr><th>VIN</th><th>כינוי</th><th>דגם</th><th>שנה</th><th>בעלים</th><th>תאריך</th></tr></thead>
+        <tbody id="vehiclesBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- Logs -->
+    <div class="page" id="page-logs">
+      <div class="pageTitle">לוג פקודות</div>
+      <div class="tableWrap"><table>
+        <thead><tr><th>משתמש</th><th>VIN</th><th>פקודה</th><th>מקור</th><th>סטטוס</th><th>זמן</th></tr></thead>
+        <tbody id="logsBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
+      </table></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Credentials Modal -->
+<div class="overlay" id="credOverlay">
+  <div class="modal">
+    <h2>✅ משתמש נוצר בהצלחה</h2>
+    <p style="color:var(--sub);font-size:13px;margin-bottom:14px">שלח את הפרטים הבאים ללקוח:</p>
+    <div class="credBox" id="credBox"></div>
+    <button class="btnPrimary" onclick="copyCredentials()" style="width:auto;margin-left:8px">📋 העתק</button>
+    <button onclick="closeCredModal()" style="background:rgba(255,255,255,.06);color:var(--sub)">סגור</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Config ──────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+let API = (params.get('api') || localStorage.getItem('ygmc_api') || '/api').replace(/\/$/, '');
+if (params.get('api')) localStorage.setItem('ygmc_api', API);
+
+let statsTimer = null;
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+function getToken() { return localStorage.getItem('ygmc_token'); }
+function setToken(t) { localStorage.setItem('ygmc_token', t); }
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + getToken(),
+      ...(opts.headers || {}),
+    },
+  });
+  if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+  return res;
+}
+
+function logout() {
+  localStorage.removeItem('ygmc_token');
+  clearInterval(statsTimer);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+// ─── Login ────────────────────────────────────────────────────────────────────
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPwd').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  try {
+    const res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pwd }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.user?.role !== 'admin') {
+      errEl.textContent = data.message || 'שם משתמש או סיסמה שגויים';
+      errEl.style.display = 'block';
+      return;
+    }
+    setToken(data.token);
+    showApp();
+  } catch (e) {
+    errEl.textContent = 'שגיאת חיבור לשרת';
+    errEl.style.display = 'block';
+  }
+});
+document.getElementById('loginPwd').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+
+// ─── App init ─────────────────────────────────────────────────────────────────
+function showApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadDashboard();
+  statsTimer = setInterval(loadStats, 30000);
+}
+
+window.addEventListener('load', () => {
+  if (getToken()) showApp();
+});
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'dashboard') loadDashboard();
+  else if (id === 'users') loadUsers('');
+  else if (id === 'vehicles') loadVehicles();
+  else if (id === 'logs') loadLogs();
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ─── Format helpers ───────────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('he-IL');
+}
+function daysLeft(d) {
+  if (!d) return '—';
+  const ms = new Date(d) - new Date();
+  const days = Math.floor(ms / 86400000);
+  if (days < 0) return '<span style="color:var(--accent)">פג תוקף</span>';
+  if (days < 30) return '<span style="color:var(--orange)">' + days + '</span>';
+  return days;
+}
+function statusBadge(s) {
+  const map = { pending: ['ממתין','pending'], approved: ['מאושר','approved'], suspended: ['מושהה','suspended'], rejected: ['נדחה','rejected'] };
+  const [lbl, cls] = map[s] || [s, 'pending'];
+  return `<span class="badge badge-${cls}">${lbl}</span>`;
+}
+function cmdStatusColor(s) {
+  return s === 'success' ? 'var(--green)' : s === 'failed' ? 'var(--accent)' : s === 'sent' ? 'var(--orange)' : 'var(--muted)';
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  await Promise.all([loadStats(), loadPending()]);
+}
+
+async function loadStats() {
+  try {
+    const res = await apiFetch('/admin/stats');
+    const d = await res.json();
+    document.getElementById('statsRow').innerHTML = `
+      <div class="statCard"><div class="val">${d.totalUsers ?? 0}</div><div class="lbl">משתמשים</div></div>
+      <div class="statCard"><div class="val" style="color:var(--orange)">${d.pendingApproval ?? 0}</div><div class="lbl">ממתינים</div></div>
+      <div class="statCard"><div class="val" style="color:var(--accent)">${d.expiringLicenses ?? 0}</div><div class="lbl">פג תוקף בקרוב</div></div>
+      <div class="statCard"><div class="val">${d.activeVehicles ?? 0}</div><div class="lbl">רכבים</div></div>
+      <div class="statCard"><div class="val">${d.totalCommands ?? 0}</div><div class="lbl">פקודות</div></div>
+    `;
+  } catch {}
+}
+
+async function loadPending() {
+  try {
+    const res = await apiFetch('/admin/users?status=pending');
+    const users = await res.json();
+    const tbody = document.getElementById('pendingBody');
+    if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">אין ממתינים לאישור</td></tr>'; return; }
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td>${u.name}</td><td>${u.email}</td><td>${u.phone || '—'}</td>
+        <td style="font-family:monospace">${u.vin || '—'}</td>
+        <td>${fmtDate(u.created_at)}</td>
+        <td><div class="actBtns">
+          <button class="btnSm btnGreen" onclick="approveUser('${u.id}')">✅ אשר</button>
+          <button class="btnSm btnRed" onclick="rejectUser('${u.id}')">❌ דחה</button>
+        </div></td>
+      </tr>`).join('');
+  } catch {}
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+let currentStatusFilter = '';
+
+function filterUsers(status, btn) {
+  currentStatusFilter = status;
+  document.querySelectorAll('.filterBtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadUsers(status);
+}
+
+async function loadUsers(status) {
+  try {
+    const qs = status ? '?status=' + status : '';
+    const res = await apiFetch('/admin/users' + qs);
+    const users = await res.json();
+    const tbody = document.getElementById('usersBody');
+    if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">אין משתמשים</td></tr>'; return; }
+    tbody.innerHTML = users.map(u => {
+      const acts = [];
+      if (u.status === 'pending') { acts.push(`<button class="btnSm btnGreen" onclick="approveUser('${u.id}')">אשר</button>`); acts.push(`<button class="btnSm btnRed" onclick="rejectUser('${u.id}')">דחה</button>`); }
+      if (u.status === 'approved') acts.push(`<button class="btnSm btnOrange" onclick="suspendUser('${u.id}')">השהה</button>`);
+      if (u.status === 'suspended') acts.push(`<button class="btnSm btnGreen" onclick="approveUser('${u.id}')">הפעל</button>`);
+      if (u.status !== 'rejected') { acts.push(`<button class="btnSm btnBlue" onclick="extendLicense('${u.id}',1)">+1ש</button>`); acts.push(`<button class="btnSm btnBlue" onclick="extendLicense('${u.id}',3)">+3ש</button>`); }
+      return `<tr>
+        <td>${u.name}</td><td>${u.email}</td>
+        <td>${statusBadge(u.status)}</td>
+        <td>${fmtDate(u.license_expires_at)}</td>
+        <td>${daysLeft(u.license_expires_at)}</td>
+        <td style="font-family:monospace;font-size:12px">${u.vin || '—'}</td>
+        <td>${u.enrollment_count > 0 ? '<span style="color:var(--green)">✓</span>' : '—'}</td>
+        <td><div class="actBtns">${acts.join('')}</div></td>
+      </tr>`;
+    }).join('');
+  } catch {}
+}
+
+// ─── User actions ─────────────────────────────────────────────────────────────
+async function approveUser(id) {
+  try { await apiFetch('/admin/users/'+id+'/approve', {method:'POST'}); toast('משתמש אושר'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+}
+async function rejectUser(id) {
+  if (!confirm('לדחות משתמש זה?')) return;
+  try { await apiFetch('/admin/users/'+id+'/reject', {method:'POST'}); toast('משתמש נדחה'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+}
+async function suspendUser(id) {
+  if (!confirm('להשהות משתמש זה?')) return;
+  try { await apiFetch('/admin/users/'+id+'/suspend', {method:'POST'}); toast('משתמש הושהה','error'); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+}
+async function extendLicense(id, years) {
+  try { await apiFetch('/admin/users/'+id+'/extend-license', {method:'POST', body:JSON.stringify({years})}); toast(`רישיון הוארך ב-${years} שנים`); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+}
+
+// ─── Create User ──────────────────────────────────────────────────────────────
+async function submitCreateUser(e) {
+  e.preventDefault();
+  const btn = document.getElementById('createUserBtn');
+  btn.disabled = true; btn.textContent = 'יוצר...';
+  try {
+    const body = {
+      name: document.getElementById('cu_name').value,
+      email: document.getElementById('cu_email').value,
+      phone: document.getElementById('cu_phone').value,
+      password: document.getElementById('cu_password').value,
+      vin: document.getElementById('cu_vin').value,
+      vehicleNickname: document.getElementById('cu_nickname').value,
+      gmUsername: document.getElementById('cu_gmUser').value,
+      gmPassword: document.getElementById('cu_gmPass').value,
+      licenseYears: parseInt(document.getElementById('cu_years').value),
+    };
+    const res = await apiFetch('/admin/users', {method:'POST', body: JSON.stringify(body)});
+    const data = await res.json();
+    if (!res.ok) { toast(data.message || 'שגיאה', 'error'); return; }
+    showCredModal(data);
+    e.target.reset();
+  } catch { toast('שגיאה ביצירת משתמש', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '➕ צור משתמש'; }
+}
+
+let lastCreds = '';
+function showCredModal(d) {
+  lastCreds = `📧 Email: ${d.email}\n🔑 Password: ${d.password}\n🚗 VIN: ${d.vin}\n📅 License until: ${fmtDate(d.licenseExpiresAt)}`;
+  document.getElementById('credBox').textContent = lastCreds;
+  document.getElementById('credOverlay').classList.add('show');
+}
+function closeCredModal() { document.getElementById('credOverlay').classList.remove('show'); }
+function copyCredentials() {
+  navigator.clipboard.writeText(lastCreds).then(() => toast('הועתק ללוח')).catch(() => toast('לא ניתן להעתיק', 'error'));
+}
+
+// ─── Vehicles ─────────────────────────────────────────────────────────────────
+async function loadVehicles() {
+  try {
+    const res = await apiFetch('/admin/vehicles');
+    const vehicles = await res.json();
+    const tbody = document.getElementById('vehiclesBody');
+    if (!vehicles.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">אין רכבים</td></tr>'; return; }
+    tbody.innerHTML = vehicles.map(v => `
+      <tr>
+        <td style="font-family:monospace">${v.vin}</td>
+        <td>${v.nickname || '—'}</td>
+        <td>${v.model || v.make || '—'}</td>
+        <td>${v.year || '—'}</td>
+        <td>${v.owner_name || '—'}</td>
+        <td>${fmtDate(v.created_at)}</td>
+      </tr>`).join('');
+  } catch {}
+}
+
+// ─── Logs ─────────────────────────────────────────────────────────────────────
+async function loadLogs() {
+  try {
+    const res = await apiFetch('/admin/command-logs');
+    const logs = await res.json();
+    const tbody = document.getElementById('logsBody');
+    if (!logs.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">אין פקודות</td></tr>'; return; }
+    tbody.innerHTML = logs.map(l => `
+      <tr>
+        <td>${l.user_name || l.user_id || '—'}</td>
+        <td style="font-family:monospace;font-size:12px">${l.vin || '—'}</td>
+        <td>${l.command}</td>
+        <td>${l.source}</td>
+        <td style="color:${cmdStatusColor(l.status)}">${l.status}</td>
+        <td style="font-size:12px;color:var(--sub)">${new Date(l.executed_at).toLocaleString('he-IL')}</td>
+      </tr>`).join('');
+  } catch {}
+}
+</script>
+</body>
+</html>
