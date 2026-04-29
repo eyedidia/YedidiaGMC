@@ -47,10 +47,10 @@ jobs:
             "ndk-bundle"
 
       - name: Generate debug keystore
+        working-directory: app/android/app
         run: |
-          mkdir -p ~/.android
           keytool -genkey -v \
-            -keystore ~/.android/debug.keystore \
+            -keystore debug.keystore \
             -alias androiddebugkey \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass android -keypass android \
