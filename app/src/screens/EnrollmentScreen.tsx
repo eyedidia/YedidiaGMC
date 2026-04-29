@@ -243,7 +243,7 @@ const Phase3: React.FC<Phase3Props> = ({ vin, onSkip, onDone }) => {
       // Quick scan — timeout after 10s
       const timeout = setTimeout(() => {
         if (resultRef.current === 'idle') {
-          eng.cleanup().catch(() => {});
+          eng.cleanup();
           updateResult('notfound');
           setTesting(false);
         }
@@ -261,7 +261,7 @@ const Phase3: React.FC<Phase3Props> = ({ vin, onSkip, onDone }) => {
 
   useEffect(() => {
     return () => {
-      engineRef.current?.cleanup().catch(() => {});
+      engineRef.current?.cleanup();
     };
   }, []);
 
