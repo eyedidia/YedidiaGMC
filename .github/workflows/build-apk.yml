@@ -39,13 +39,6 @@ jobs:
             sed -i "s|https://your-server.com/api|$API_URL|g" src/services/api.ts
           fi
 
-      - name: Install Android NDK
-        run: |
-          echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
-            "ndk;26.1.10909125" || \
-          echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
-            "ndk-bundle"
-
       - name: Generate debug keystore
         working-directory: app/android/app
         run: |
@@ -99,11 +92,6 @@ jobs:
         working-directory: app
         run: |
           sed -i "s|https://your-server.com/api|${{ secrets.API_BASE_URL }}|g" src/services/api.ts
-
-      - name: Install Android NDK
-        run: |
-          echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
-            "ndk;26.1.10909125" || true
 
       - name: Decode keystore
         working-directory: app/android/app
