@@ -237,14 +237,14 @@ const DiagnosticsScreen: React.FC = () => {
               <Metric
                 icon="⚙️"
                 label="סל״ד מנוע"
-                value={String(data.rpm ?? '—')}
+                value={String(data.engineRPM ?? '—')}
                 unit="RPM"
-                color={data.rpm && data.rpm > 3500 ? COLORS.orange : undefined}
+                color={data.engineRPM && data.engineRPM > 3500 ? COLORS.orange : undefined}
               />
               <Metric
                 icon="🚗"
                 label="מהירות"
-                value={String(data.speed ?? '—')}
+                value={String(data.vehicleSpeed ?? '—')}
                 unit="קמ״ש"
               />
               <Metric

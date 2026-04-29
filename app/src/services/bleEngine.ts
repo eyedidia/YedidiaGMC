@@ -56,6 +56,7 @@ export interface BleEngineCallbacks {
   onStatusChange: (status: BleStatus) => void;
   onVehicleStatus: (status: VehicleStatus) => void;
   onError: (error: string) => void;
+  onRssi?: (rssi: number) => void;
 }
 
 // ─── BleEngine ────────────────────────────────────────────────────────────────

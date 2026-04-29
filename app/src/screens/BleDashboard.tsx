@@ -417,14 +417,14 @@ const BleDashboard: React.FC<Props> = ({ navigation }) => {
                   icon={
                     vehicleStatus.charging
                       ? '⚡'
-                      : vehicleStatus.chargingConnected
+                      : vehicleStatus.plugged
                       ? '🔌'
                       : '🔋'
                   }
                   label={
                     vehicleStatus.charging
                       ? 'טוען'
-                      : vehicleStatus.chargingConnected
+                      : vehicleStatus.plugged
                       ? 'מחובר'
                       : 'לא מחובר'
                   }

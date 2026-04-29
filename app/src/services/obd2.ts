@@ -20,7 +20,7 @@ export class OBD2Service {
   private connected: boolean = false;
   private deviceId: string | null = null;
 
-  async connect(deviceId: string): Promise<boolean> {
+  async connect(deviceId?: string): Promise<boolean> {
     // Stub: simulate connection delay
     await new Promise<void>(resolve => setTimeout(resolve, 500));
     this.deviceId = deviceId;
@@ -60,7 +60,20 @@ export class OBD2Service {
     return true;
   }
 
-  disconnect(): void {
+  getLiveData(): Promise<OBD2Data> {
+    return this.getEngineData();
+  }
+
+  async getDTCs(): Promise<DTC[]> {
+    const codes = await this.getDTCodes();
+    return codes.map(code => ({ code, description: '' }));
+  }
+
+  async clearDTCs(): Promise<boolean> {
+    return this.clearDTCodes();
+  }
+
+  async disconnect(): Promise<void> {
     this.connected = false;
     this.deviceId = null;
   }
