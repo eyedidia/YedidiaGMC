@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YedidiaGMC — עיצוב מסכים</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060B14;color:#F0F4F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:32px 24px;min-height:100vh}
+h1{text-align:center;font-size:26px;font-weight:800;margin-bottom:6px}
+h1 span{color:#E31837}
+.subtitle{text-align:center;color:#9CA3AF;font-size:14px;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:32px;max-width:1400px;margin:0 auto}
+.phoneWrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.phoneLabel{font-size:13px;font-weight:700;color:#9CA3AF;letter-spacing:.5px}
+.phone{width:290px;height:580px;background:#0A0E1A;border-radius:36px;border:2px solid #1A2535;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:22px;background:#060B14;border-radius:0 0 14px 14px;z-index:10}
+.screen{padding:28px 16px 16px;height:100%;overflow-y:auto;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+
+/* Design system */
+:root{--bg:#0A0E1A;--card:#111827;--border:#1A2535;--accent:#E31837;--green:#22C55E;--orange:#F59E0B;--blue:#3B82F6;--text:#F0F4F8;--sub:#9CA3AF;--muted:#6B7A8D}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.label{font-size:11px;color:var(--sub);margin-bottom:4px}
+.inp{background:#0D1420;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);width:100%;margin-bottom:10px}
+.btn{display:block;width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;text-align:center;cursor:pointer;margin-bottom:8px}
+.btn-outline{background:rgba(255,255,255,.06);color:var(--text)}
+.btn-green{background:rgba(34,197,94,.2);color:var(--green)}
+.btn-sm{width:auto;display:inline-block;padding:7px 14px;font-size:12px;border-radius:8px;margin:2px}
+.title{font-size:18px;font-weight:800;margin-bottom:14px}
+.sub{font-size:12px;color:var(--sub)}
+.row{display:flex;gap:8px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.divider{height:1px;background:var(--border);margin:10px 0}
+</style>
+</head>
+<body>
+<h1>🚗 <span>YedidiaGMC</span> — עיצוב מסכים</h1>
+<p class="subtitle">React Native App · Dark Theme · Hebrew RTL</p>
+
+<div class="grid">
+
+<!-- 1. Auth - Login -->
+<div class="phoneWrap">
+<div class="phoneLabel">1. כניסה</div>
+<div class="phone"><div class="screen">
+  <div style="text-align:center;margin:20px 0 24px">
+    <div style="font-size:36px">🚗</div>
+    <div style="font-size:18px;font-weight:800;color:var(--accent)">YedidiaGMC</div>
+    <div class="sub">שלוט ברכב שלך</div>
+  </div>
+  <div style="display:flex;background:var(--card);border-radius:10px;margin-bottom:16px;border:1px solid var(--border)">
+    <div style="flex:1;text-align:center;padding:9px;background:rgba(227,24,55,.15);border-radius:10px;color:var(--accent);font-size:13px;font-weight:700">כניסה</div>
+    <div style="flex:1;text-align:center;padding:9px;color:var(--sub);font-size:13px">הרשמה</div>
+  </div>
+  <div class="label">אימייל</div>
+  <input class="inp" placeholder="user@email.com">
+  <div class="label">סיסמה</div>
+  <input class="inp" placeholder="••••••••" type="password">
+  <button class="btn">🔑 כניסה</button>
+  <div style="text-align:center;font-size:12px;color:var(--sub);margin-top:8px">אין לך חשבון? <span style="color:var(--accent)">הירשם</span></div>
+</div></div>
+</div>
+
+<!-- 2. Auth - Register -->
+<div class="phoneWrap">
+<div class="phoneLabel">2. הרשמה (3 שלבים)</div>
+<div class="phone"><div class="screen">
+  <div style="text-align:center;margin-bottom:18px">
+    <div style="font-size:15px;font-weight:800;margin-bottom:12px">הרשמה</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">1</div>
+      <div style="flex:1;height:2px;background:var(--accent)"></div>
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub)">2</div>
+      <div style="flex:1;height:2px;background:var(--border)"></div>
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub)">3</div>
+    </div>
+    <div style="font-size:11px;color:var(--sub);margin-top:6px">שלב 1 — חשבון</div>
+  </div>
+  <div class="card">
+    <div class="label">שם מלא</div><input class="inp" placeholder="ישראל כהן">
+    <div class="label">אימייל</div><input class="inp" placeholder="user@email.com">
+    <div class="label">סיסמה</div><input class="inp" placeholder="לפחות 8 תווים" type="password">
+    <div class="label">אימות סיסמה</div><input class="inp" placeholder="••••••••" type="password">
+  </div>
+  <button class="btn" style="margin-top:10px">הבא ←</button>
+</div></div>
+</div>
+
+<!-- 3. BLE Dashboard -->
+<div class="phoneWrap">
+<div class="phoneLabel">3. שליטה (מחובר)</div>
+<div class="phone"><div class="screen">
+  <!-- License warning -->
+  <div style="background:rgba(245,158,11,.15);border:1px solid var(--orange);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--orange)">⚠️ הרישיון פג בעוד 12 ימים — פנה לידידיה</div>
+  <!-- Header -->
+  <div class="card" style="margin-bottom:10px">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <div style="font-size:15px;font-weight:800">הטנדר שלי 🔑</div>
+        <div style="font-family:monospace;font-size:11px;color:var(--sub)">1GKKNLLS0NZ123456</div>
+        <div style="font-size:11px;color:var(--muted)">ישראל כהן</div>
+      </div>
+    </div>
+  </div>
+  <!-- Status -->
+  <div class="card" style="margin-bottom:10px">
+    <div class="row" style="margin-bottom:8px">
+      <div class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+      <span style="font-size:13px;color:var(--green);font-weight:700">מחובר</span>
+      <span style="font-size:11px;color:var(--sub);margin-right:auto">📶 -62 dBm</span>
+    </div>
+    <div style="display:flex;gap:8px;font-size:11px">
+      <span style="color:var(--text)">🔒 נעול</span>
+      <span style="color:var(--muted)">🚗 כבוי</span>
+      <span style="color:var(--muted)">🚘 סגור</span>
+    </div>
+  </div>
+  <button class="btn" style="background:rgba(34,197,94,.2);color:var(--green);margin-bottom:10px">✕ נתק</button>
+  <!-- Commands -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+    <button style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 6px;color:var(--text);font-size:11px;cursor:pointer">🔒<br>נעל</button>
+    <button style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 6px;color:var(--text);font-size:11px;cursor:pointer">🔓<br>פתח</button>
+    <button style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 6px;color:var(--text);font-size:11px;cursor:pointer">🔑<br>הנע מנוע</button>
+    <button style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 6px;color:var(--text);font-size:11px;cursor:pointer">⛔<br>עצור</button>
+    <button style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 6px;color:var(--text);font-size:11px;cursor:pointer">📦<br>מטען</button>
+    <button style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 6px;color:var(--text);font-size:11px;cursor:pointer">🚪<br>דלת נהג</button>
+  </div>
+  <button style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:12px;cursor:pointer;width:100%;margin-top:7px">📯 צופר + אורות</button>
+</div></div>
+</div>
+
+<!-- 4. Enrollment -->
+<div class="phoneWrap">
+<div class="phoneLabel">4. Enrollment</div>
+<div class="phone"><div class="screen">
+  <div class="title">🔑 Digital Key Enrollment</div>
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:12px;color:var(--sub);margin-bottom:10px">שלב חד-פעמי המאפשר שליטה ב-Bluetooth ללא אינטרנט:</div>
+    <div style="font-size:12px;line-height:2;color:var(--green)">✓ נעילה ופתיחה<br>✓ הנעת מנוע מרחוק<br>✓ פתיחת מטען<br>✓ צופר ואורות</div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px">פרטי myGMC</div>
+    <div class="label">אימייל GM</div>
+    <input class="inp" placeholder="gm@email.com">
+    <div class="label">סיסמת GM</div>
+    <input class="inp" placeholder="••••••••" type="password">
+    <div style="font-size:10px;color:var(--muted);margin-top:-6px;margin-bottom:10px">הסיסמה משמשת לאימות חד-פעמי בלבד</div>
+    <button class="btn">🚀 התחל Enrollment</button>
+  </div>
+</div></div>
+</div>
+
+<!-- 5. Enrollment Phase 2 -->
+<div class="phoneWrap">
+<div class="phoneLabel">5. Enrollment — תהליך</div>
+<div class="phone"><div class="screen">
+  <div class="title" style="text-align:center">מבצע Enrollment...</div>
+  <div class="card">
+    <div style="font-size:13px;line-height:2.2">
+      <div style="color:var(--green)">✅ פרטי myGMC אומתו</div>
+      <div style="color:var(--green)">✅ מפתח הצפנה נוצר</div>
+      <div style="color:var(--green)">✅ מפתח נרשם ב-GM servers</div>
+      <div class="row" style="color:var(--orange)">
+        <span style="display:inline-block;width:14px;height:14px;border:2px solid var(--orange);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></span>
+        <span style="margin-right:8px">שומר מפתח פרטי...</span>
+      </div>
+      <div style="color:var(--muted)">· שולח לשרת YedidiaGMC</div>
+    </div>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div></div>
+</div>
+
+<!-- 6. License Expired -->
+<div class="phoneWrap">
+<div class="phoneLabel">6. רישיון פג תוקף</div>
+<div class="phone"><div class="screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px">
+  <div style="width:80px;height:80px;border-radius:50%;border:2px solid var(--accent);background:rgba(227,24,55,.1);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:18px">⛔</div>
+  <div style="font-size:18px;font-weight:800;margin-bottom:6px">הרישיון שלך פג תוקף</div>
+  <div style="font-size:13px;color:var(--sub);margin-bottom:24px;text-align:center">תוקף עד: 15 בינואר 2025<br>לחידוש הרישיון, פנה לידידיה:</div>
+  <button class="btn" style="background:rgba(227,24,55,.2);color:var(--accent);margin-bottom:8px">📞 חייג לידידיה</button>
+  <button class="btn" style="background:rgba(37,211,102,.2);color:#25D366;margin-bottom:8px">💬 שלח WhatsApp</button>
+  <button class="btn" style="background:rgba(59,130,246,.2);color:var(--blue)">✉️ שלח מייל</button>
+  <div style="margin-top:16px;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer">התנתק</div>
+</div></div>
+</div>
+
+<!-- 7. History -->
+<div class="phoneWrap">
+<div class="phoneLabel">7. היסטוריה</div>
+<div class="phone"><div class="screen">
+  <div class="title">היסטוריית פקודות</div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800">24</div>
+      <div style="font-size:10px;color:var(--sub)">סה״כ</div>
+    </div>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:var(--green)">22</div>
+      <div style="font-size:10px;color:var(--sub)">הצלחות</div>
+    </div>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:var(--accent)">2</div>
+      <div style="font-size:10px;color:var(--sub)">שגיאות</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:6px">היום</div>
+  <div class="card" style="margin-bottom:6px">
+    <div class="row" style="justify-content:space-between">
+      <div class="row" style="gap:8px"><span style="font-size:16px">🔒</span><div><div style="font-size:13px;font-weight:600">נעל</div><div style="font-size:10px;color:var(--sub)">14:32</div></div></div>
+      <span style="color:var(--green);font-size:16px">✅</span>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:6px">
+    <div class="row" style="justify-content:space-between">
+      <div class="row" style="gap:8px"><span style="font-size:16px">🔑</span><div><div style="font-size:13px;font-weight:600">הנע מנוע</div><div style="font-size:10px;color:var(--sub)">12:15</div></div></div>
+      <span style="color:var(--green);font-size:16px">✅</span>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin:10px 0 6px">אתמול</div>
+  <div class="card" style="margin-bottom:6px">
+    <div class="row" style="justify-content:space-between">
+      <div class="row" style="gap:8px"><span style="font-size:16px">🔓</span><div><div style="font-size:13px;font-weight:600">פתח</div><div style="font-size:10px;color:var(--sub)">18:44</div></div></div>
+      <span style="color:var(--accent);font-size:16px">❌</span>
+    </div>
+  </div>
+</div></div>
+</div>
+
+</div><!-- /grid -->
+
+<div style="text-align:center;margin-top:48px;color:var(--muted);font-size:12px">
+  YedidiaGMC Design Preview · React Native 0.73 · Hebrew RTL · Dark Theme
+</div>
+</body>
+</html>

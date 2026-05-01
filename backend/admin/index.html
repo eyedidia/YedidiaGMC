@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yedidia Motors — Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* ── Dealership palette: charcoal, graphite, white ── */
+  --bg:       #0e0e0e;
+  --bg2:      #141414;
+  --card:     #1a1a1a;
+  --card2:    #1e1e1e;
+  --border:   #2a2a2a;
+  --border2:  #363636;
+  --accent:   #C41230;
+  --accent-b: #9e0e26;
+  --glow-r:   rgba(196,18,48,0.28);
+  --glow-g:   rgba(34,197,94,0.18);
+  --glow-o:   rgba(245,158,11,0.18);
+  --glow-b:   rgba(180,180,180,0.15);
+  --green:    #22C55E;
+  --orange:   #F59E0B;
+  --blue:     #a0a0a0;
+  --silver:   #c8c8c8;
+  --text:     #f0f0f0;
+  --text2:    #c0c0c0;
+  --sub:      #707070;
+  --muted:    #3a3a3a;
+  --input:    #111111;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+button { cursor: pointer; border: none; font-family: inherit; transition: all .18s; }
+input, select {
+  background: var(--input); border: 1px solid var(--border);
+  color: var(--text); border-radius: 8px; padding: 10px 14px;
+  font-size: 14px; width: 100%; font-family: inherit; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--glow-r);
+}
+input::placeholder { color: var(--muted); }
+label { display: block; font-size: 11px; font-weight: 600; color: var(--sub); margin-bottom: 7px; letter-spacing: .08em; text-transform: uppercase; }
+.field { margin-bottom: 18px; }
+a { color: inherit; text-decoration: none; }
+
+/* ═══════════════════════════════════════
+   VIDEO BACKGROUND
+═══════════════════════════════════════ */
+#bgVideo {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  object-fit: cover;
+  filter: brightness(0.45) saturate(1.1);
+}
+#bgOverlay {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0,0,0,0.65) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.72) 100%);
+}
+
+/* ═══════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════ */
+#loginPage {
+  position: fixed; inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 32px;
+}
+.login-wordmark {
+  text-align: center;
+}
+.login-wordmark h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px; font-weight: 400; letter-spacing: .18em;
+  text-transform: uppercase; color: #ffffff;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+}
+.login-wordmark .divline {
+  display: flex; align-items: center; gap: 12px; margin-top: 8px;
+}
+.login-wordmark .divline span {
+  height: 1px; flex: 1;
+  background: linear-gradient(90deg, transparent, var(--border2));
+}
+.login-wordmark .divline span:last-child {
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+.login-wordmark .divline em {
+  font-style: normal; font-size: 9px; color: var(--sub); letter-spacing: .25em; text-transform: uppercase;
+}
+
+.loginBox {
+  background: rgba(18,18,18,0.88);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 44px 40px;
+  width: 380px;
+  backdrop-filter: blur(24px) saturate(120%);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  position: relative;
+  overflow: hidden;
+}
+.loginBox::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(196,18,48,0.7) 50%, transparent 100%);
+}
+.login-header { margin-bottom: 32px; }
+.login-header h2 { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+.login-header p { font-size: 13px; color: var(--sub); margin-top: 4px; font-weight: 400; }
+
+.err {
+  background: rgba(196,18,48,.1); border: 1px solid rgba(196,18,48,.25);
+  border-radius: 8px; padding: 11px 14px; color: #ff7a8a; font-size: 13px;
+  margin-bottom: 18px; display: none; font-weight: 500;
+}
+.btnLogin {
+  background: linear-gradient(135deg, #C41230 0%, #8b0d22 100%);
+  color: #fff; width: 100%; padding: 13px; font-size: 14px;
+  font-weight: 700; border-radius: 10px; letter-spacing: .04em;
+  box-shadow: 0 4px 24px rgba(196,18,48,0.35);
+}
+.btnLogin:hover { box-shadow: 0 8px 32px rgba(196,18,48,0.5); transform: translateY(-1px); }
+.btnLogin:active { transform: translateY(0); }
+.btnLogin:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* ═══════════════════════════════════════
+   APP LAYOUT
+═══════════════════════════════════════ */
+#app {
+  position: fixed; inset: 0; z-index: 2;
+  display: none; flex-direction: row;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: rgba(20,20,20,0.92);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; height: 100vh;
+  backdrop-filter: blur(20px);
+  position: relative;
+}
+.sidebar::after {
+  content: ''; position: absolute; top: 0; right: 0; width: 1px; height: 100%;
+  background: linear-gradient(180deg, transparent, rgba(196,18,48,0.22) 50%, transparent);
+  pointer-events: none;
+}
+
+.sb-top {
+  padding: 28px 20px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.sb-brand { display: flex; flex-direction: column; }
+.sb-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; font-weight: 400; color: #ffffff;
+  letter-spacing: .12em;
+}
+.sb-name span { color: var(--accent); }
+.sb-caption { font-size: 9px; color: #555; letter-spacing: .18em; text-transform: uppercase; margin-top: 2px; }
+.sb-redline {
+  width: 28px; height: 2px; background: var(--accent);
+  border-radius: 1px; margin-top: 10px;
+  box-shadow: 0 0 8px var(--glow-r);
+}
+
+.sb-nav { flex: 1; padding: 16px 10px; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; }
+.sb-label { font-size: 9px; font-weight: 700; color: var(--muted); letter-spacing: .15em; text-transform: uppercase; padding: 12px 10px 5px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 10px; border-radius: 8px;
+  color: var(--sub); font-size: 13px; font-weight: 500;
+  cursor: pointer; background: none; width: 100%;
+  text-align: right; border: 1px solid transparent;
+  position: relative;
+}
+.nav-item:hover { color: var(--text2); background: rgba(255,255,255,.03); }
+.nav-item.active {
+  color: var(--text); background: rgba(196,18,48,.1);
+  border-color: rgba(196,18,48,.2);
+}
+.nav-icon {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; background: rgba(255,255,255,.04); flex-shrink: 0;
+  transition: background .18s;
+}
+.nav-item.active .nav-icon { background: rgba(196,18,48,.2); }
+.nav-icon svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-badge {
+  margin-right: auto; background: var(--accent);
+  color: #fff; font-size: 9px; font-weight: 800;
+  border-radius: 99px; padding: 1px 6px; min-width: 18px; text-align: center;
+  box-shadow: 0 0 8px var(--glow-r);
+  display: none;
+}
+
+.sb-bottom {
+  padding: 14px 10px; border-top: 1px solid var(--border);
+}
+.sb-user {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  background: rgba(255,255,255,.02); border: 1px solid var(--border);
+}
+.sb-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #5a0010);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.sb-uname { font-size: 12px; font-weight: 600; color: var(--text2); }
+.sb-urole { font-size: 10px; color: var(--muted); }
+.btn-logout {
+  margin-right: auto; background: none; color: var(--muted); padding: 4px;
+  border-radius: 5px; display: flex; align-items: center; justify-content: center;
+}
+.btn-logout:hover { color: var(--accent); }
+.btn-logout svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+/* ── Main content ── */
+.content {
+  flex: 1; display: flex; flex-direction: column; height: 100vh;
+  background: rgba(10,10,10,0.78); backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+.topbar {
+  height: 52px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px; gap: 16px;
+  background: rgba(16,16,16,0.7); flex-shrink: 0;
+}
+.topbar-title { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+.topbar-right { display: flex; align-items: center; gap: 14px; margin-right: auto; }
+.btn-refresh {
+  background: rgba(255,255,255,.04); color: var(--sub);
+  border: 1px solid var(--border); padding: 5px 12px; border-radius: 7px;
+  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+}
+.btn-refresh:hover { color: var(--text); border-color: var(--border2); }
+.status-dot { display: flex; align-items: center; gap: 7px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.6); }
+.dot-txt { font-size: 11px; color: var(--sub); font-weight: 500; letter-spacing: .04em; }
+
+.main { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ═══════════════════════════════════════
+   STAT CARDS
+═══════════════════════════════════════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px; margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 18px 16px;
+  position: relative; overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,.4); }
+.stat-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+}
+.stat-card.t-red::after   { background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 12px var(--glow-r); }
+.stat-card.t-green::after { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+.stat-card.t-orange::after{ background: linear-gradient(90deg, transparent, var(--orange), transparent); }
+.stat-card.t-blue::after  { background: linear-gradient(90deg, transparent, var(--blue), transparent); }
+.stat-card.t-silver::after{ background: linear-gradient(90deg, transparent, var(--silver), transparent); }
+.stat-label { font-size: 10px; font-weight: 700; color: var(--sub); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+.stat-val { font-size: 34px; font-weight: 900; line-height: 1; letter-spacing: -.04em; }
+.stat-card.t-red    .stat-val { color: var(--accent); text-shadow: 0 0 20px var(--glow-r); }
+.stat-card.t-green  .stat-val { color: var(--green); }
+.stat-card.t-orange .stat-val { color: var(--orange); }
+.stat-card.t-blue   .stat-val { color: #b0b0b0; }
+.stat-card.t-silver .stat-val { color: #e0e0e0; }
+
+/* ═══════════════════════════════════════
+   SECTION
+═══════════════════════════════════════ */
+.sec-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sec-title { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: .01em; }
+.sec-pill {
+  font-size: 11px; font-weight: 700; color: var(--sub);
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  border-radius: 99px; padding: 2px 10px;
+}
+
+/* ═══════════════════════════════════════
+   TABLE
+═══════════════════════════════════════ */
+.tbl-card {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th {
+  background: rgba(255,255,255,.02);
+  padding: 11px 14px; text-align: right;
+  color: var(--sub); font-weight: 600; font-size: 10px;
+  letter-spacing: .09em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+td { padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,.03); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background .12s; }
+tbody tr:hover td { background: rgba(255,255,255,.02); }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 99px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .03em;
+}
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.bp { background: rgba(245,158,11,.1); color: var(--orange); border: 1px solid rgba(245,158,11,.2); }
+.bp .badge-dot { background: var(--orange); box-shadow: 0 0 6px rgba(245,158,11,.5); }
+.ba { background: rgba(34,197,94,.08); color: var(--green); border: 1px solid rgba(34,197,94,.18); }
+.ba .badge-dot { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,.5); }
+.bs { background: rgba(196,18,48,.08); color: #ff6b7a; border: 1px solid rgba(196,18,48,.2); }
+.bs .badge-dot { background: var(--accent); box-shadow: 0 0 6px var(--glow-r); }
+.br { background: rgba(90,110,133,.08); color: var(--sub); border: 1px solid var(--border); }
+.br .badge-dot { background: var(--muted); }
+
+/* ── Action buttons ── */
+.act { display: flex; gap: 5px; flex-wrap: wrap; }
+.btn-sm {
+  padding: 4px 10px; font-size: 11px; font-weight: 700;
+  border-radius: 6px; letter-spacing: .03em;
+}
+.bg { background: rgba(34,197,94,.08); color: var(--green); border: 1px solid rgba(34,197,94,.18); }
+.bg:hover { background: rgba(34,197,94,.18); box-shadow: 0 0 14px var(--glow-g); }
+.br2 { background: rgba(196,18,48,.08); color: #ff6b7a; border: 1px solid rgba(196,18,48,.2); }
+.br2:hover { background: rgba(196,18,48,.18); box-shadow: 0 0 14px var(--glow-r); }
+.bo { background: rgba(245,158,11,.08); color: var(--orange); border: 1px solid rgba(245,158,11,.18); }
+.bo:hover { background: rgba(245,158,11,.18); box-shadow: 0 0 14px var(--glow-o); }
+.bb { background: rgba(180,180,180,.07); color: #b0b0b0; border: 1px solid rgba(180,180,180,.16); }
+.bb:hover { background: rgba(180,180,180,.15); box-shadow: 0 0 14px var(--glow-b); }
+
+/* ── Filter ── */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn {
+  background: rgba(255,255,255,.03); border: 1px solid var(--border);
+  color: var(--sub); padding: 6px 14px; border-radius: 8px;
+  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+}
+.filter-btn:hover { color: var(--text2); border-color: var(--border2); }
+.filter-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(196,18,48,.07); }
+
+/* ── Form ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.form-card {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px; margin-bottom: 18px;
+}
+.form-card-title {
+  font-size: 10px; font-weight: 700; color: var(--sub);
+  letter-spacing: .1em; text-transform: uppercase;
+  margin-bottom: 18px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.form-card-title::before {
+  content: ''; width: 2px; height: 12px; background: var(--accent); border-radius: 1px;
+  display: block; box-shadow: 0 0 8px var(--glow-r);
+}
+.btn-submit {
+  background: linear-gradient(135deg, #C41230, #8b0d22);
+  color: #fff; padding: 12px 28px; font-size: 13px;
+  font-weight: 700; border-radius: 10px; letter-spacing: .04em;
+  box-shadow: 0 4px 20px var(--glow-r);
+}
+.btn-submit:hover { box-shadow: 0 8px 28px rgba(196,18,48,.5); transform: translateY(-1px); }
+.btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+/* ── Empty ── */
+.empty-state { text-align: center; padding: 48px 24px; }
+.empty-line { font-size: 11px; color: var(--muted); letter-spacing: .05em; }
+.loading-bar {
+  width: 40px; height: 2px; background: var(--border2); border-radius: 1px;
+  margin: 0 auto 16px; overflow: hidden; position: relative;
+}
+.loading-bar::after {
+  content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: var(--accent);
+  animation: loadbar 1s ease infinite;
+}
+@keyframes loadbar { to { left: 100%; } }
+
+/* ── Mono ── */
+.mono { font-family: 'Courier New', monospace; font-size: 11.5px; color: var(--sub); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  background: var(--card2); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 12px 18px;
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  box-shadow: 0 16px 48px rgba(0,0,0,.7);
+  backdrop-filter: blur(12px);
+  display: none; align-items: center; gap: 10px;
+  max-width: 300px;
+}
+.toast.show { display: flex; animation: tin .22s cubic-bezier(.34,1.56,.64,1); }
+@keyframes tin { from { opacity:0; transform:translateY(10px) scale(.95); } to { opacity:1; transform:none; } }
+.toast-ic { font-size: 14px; flex-shrink: 0; }
+.toast.ok .toast-ic::before { content: '✓'; color: var(--green); font-weight: 800; }
+.toast.ok { border-color: rgba(34,197,94,.25); }
+.toast.err .toast-ic::before { content: '✕'; color: var(--accent); font-weight: 800; }
+.toast.err { border-color: rgba(196,18,48,.25); }
+
+/* ── Modal ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.8); backdrop-filter: blur(8px);
+  z-index: 200; display: none; align-items: center; justify-content: center;
+}
+.overlay.show { display: flex; animation: fadeIn .18s; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.modal {
+  background: var(--card2); border: 1px solid var(--border2);
+  border-radius: 18px; padding: 30px;
+  max-width: 460px; width: 90%; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 40px 100px rgba(0,0,0,.8);
+  animation: min .22s cubic-bezier(.34,1.56,.64,1);
+  position: relative;
+}
+.modal::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; border-radius: 18px 18px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(34,197,94,.5), transparent);
+}
+@keyframes min { from { opacity:0; transform:scale(.93) translateY(16px); } to { opacity:1; transform:none; } }
+.modal h2 { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--sub); margin-bottom: 18px; }
+.cred-box {
+  background: var(--input); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 16px;
+  font-family: 'Courier New', monospace; font-size: 12.5px;
+  line-height: 2; white-space: pre-wrap; color: var(--text2);
+  margin-bottom: 18px;
+}
+.modal-btns { display: flex; gap: 10px; }
+.btn-copy {
+  background: rgba(34,197,94,.08); color: var(--green); border: 1px solid rgba(34,197,94,.2);
+  padding: 9px 18px; font-size: 12px; font-weight: 700; border-radius: 8px;
+}
+.btn-copy:hover { background: rgba(34,197,94,.16); }
+.btn-close {
+  background: rgba(255,255,255,.04); color: var(--sub); border: 1px solid var(--border);
+  padding: 9px 18px; font-size: 12px; font-weight: 700; border-radius: 8px;
+}
+.btn-close:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<video id="bgVideo" autoplay loop muted playsinline>
+  <source src="bg.mp4" type="video/mp4">
+</video>
+<div id="bgOverlay"></div>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginPage">
+  <div class="login-wrap">
+    <div class="login-wordmark">
+      <h1>YEDIDIA&nbsp;MOTORS</h1>
+      <div class="divline">
+        <span></span><em>ADMIN CONTROL CENTER</em><span></span>
+      </div>
+    </div>
+    <div class="loginBox">
+      <div class="login-header">
+        <h2>כניסה למערכת</h2>
+        <p>גישה מוגבלת למנהלים בלבד</p>
+      </div>
+      <div class="err" id="loginErr"></div>
+      <div class="field">
+        <label>אימייל</label>
+        <input type="email" id="loginEmail" placeholder="admin@yedidiagmc.local" autocomplete="username">
+      </div>
+      <div class="field" style="margin-bottom:24px">
+        <label>סיסמה</label>
+        <input type="password" id="loginPwd" placeholder="••••••••••" autocomplete="current-password">
+      </div>
+      <button class="btnLogin" id="loginBtn">כניסה</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+  <div class="sidebar">
+    <div class="sb-top">
+      <div class="sb-brand">
+        <div class="sb-name">YEDIDIA <span>MOTORS</span></div>
+        <div class="sb-caption">Admin Panel</div>
+        <div class="sb-redline"></div>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-label">ניהול</div>
+
+      <button class="nav-item active" onclick="showPage('dashboard',this)">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        דשבורד
+        <span class="nav-badge" id="pendingBadge">0</span>
+      </button>
+
+      <button class="nav-item" onclick="showPage('users',this)">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M19 8v6M22 11h-6"/></svg>
+        </div>
+        משתמשים
+      </button>
+
+      <button class="nav-item" onclick="showPage('createUser',this)">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+        </div>
+        צור משתמש
+      </button>
+
+      <div class="sb-label" style="margin-top:6px">נתונים</div>
+
+      <button class="nav-item" onclick="showPage('vehicles',this)">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2m14-2h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="8.5" cy="15.5" r="1.5"/><circle cx="15.5" cy="15.5" r="1.5"/><path d="M5 10h14"/></svg>
+        </div>
+        רכבים
+      </button>
+
+      <button class="nav-item" onclick="showPage('logs',this)">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        </div>
+        לוג פקודות
+      </button>
+    </nav>
+
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">A</div>
+        <div>
+          <div class="sb-uname">Admin</div>
+          <div class="sb-urole">System Administrator</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="התנתק">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="topbar">
+      <span class="topbar-title" id="topbarTitle">דשבורד</span>
+      <div class="topbar-right">
+        <button class="btn-refresh" onclick="refreshCurrentPage()">רענן</button>
+        <div class="status-dot">
+          <div class="dot"></div>
+          <span class="dot-txt">LIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- Dashboard -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid" id="statsRow">
+          <div class="stat-card t-silver"><div class="stat-label">משתמשים</div><div class="stat-val">—</div></div>
+          <div class="stat-card t-orange"><div class="stat-label">ממתינים</div><div class="stat-val">—</div></div>
+          <div class="stat-card t-red"><div class="stat-label">פג תוקף בקרוב</div><div class="stat-val">—</div></div>
+          <div class="stat-card t-green"><div class="stat-label">רכבים פעילים</div><div class="stat-val">—</div></div>
+          <div class="stat-card t-blue"><div class="stat-label">פקודות</div><div class="stat-val">—</div></div>
+        </div>
+        <div class="sec-hd">
+          <span class="sec-title">ממתינים לאישור</span>
+          <span class="sec-pill" id="pendingCount">0</span>
+        </div>
+        <div class="tbl-card">
+          <table>
+            <thead><tr><th>שם</th><th>אימייל</th><th>טלפון</th><th>VIN</th><th>תאריך</th><th>פעולות</th></tr></thead>
+            <tbody id="pendingBody"><tr><td colspan="6"><div class="empty-state"><div class="loading-bar"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div class="page" id="page-users">
+        <div class="filter-bar">
+          <button class="filter-btn on" onclick="filterUsers('',this)">הכל</button>
+          <button class="filter-btn" onclick="filterUsers('pending',this)">ממתין</button>
+          <button class="filter-btn" onclick="filterUsers('approved',this)">מאושר</button>
+          <button class="filter-btn" onclick="filterUsers('suspended',this)">מושהה</button>
+          <button class="filter-btn" onclick="filterUsers('rejected',this)">נדחה</button>
+        </div>
+        <div class="tbl-card">
+          <table>
+            <thead><tr><th>שם</th><th>אימייל</th><th>סטטוס</th><th>רישיון עד</th><th>ימים</th><th>VIN</th><th>BLE</th><th>פעולות</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="8"><div class="empty-state"><div class="loading-bar"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Create User -->
+      <div class="page" id="page-createUser">
+        <form id="createUserForm" onsubmit="submitCreateUser(event)">
+          <div class="form-card">
+            <div class="form-card-title">פרטים אישיים</div>
+            <div class="form-grid">
+              <div class="field"><label>שם מלא *</label><input required id="cu_name" placeholder="ישראל כהן"></div>
+              <div class="field"><label>אימייל *</label><input required type="email" id="cu_email" placeholder="user@email.com"></div>
+              <div class="field"><label>טלפון</label><input id="cu_phone" placeholder="050-0000000"></div>
+              <div class="field"><label>סיסמה זמנית *</label><input required id="cu_password" placeholder="TempPass123!"></div>
+            </div>
+          </div>
+          <div class="form-card">
+            <div class="form-card-title">פרטי רכב</div>
+            <div class="form-grid">
+              <div class="field"><label>VIN *</label><input required id="cu_vin" maxlength="17" placeholder="1GKKNLLS0NZ123456" oninput="this.value=this.value.toUpperCase()"></div>
+              <div class="field"><label>כינוי רכב</label><input id="cu_nickname" placeholder="הטנדר שלי"></div>
+            </div>
+          </div>
+          <div class="form-card">
+            <div class="form-card-title">חשבון myGMC / OnStar</div>
+            <div class="form-grid">
+              <div class="field"><label>אימייל GM</label><input type="email" id="cu_gmUser" placeholder="gm@email.com"></div>
+              <div class="field"><label>סיסמת GM</label><input type="password" id="cu_gmPass"></div>
+            </div>
+          </div>
+          <div class="form-card">
+            <div class="form-card-title">הגדרות רישיון</div>
+            <div class="form-grid">
+              <div class="field">
+                <label>תקופה</label>
+                <select id="cu_years">
+                  <option value="1">שנה אחת</option>
+                  <option value="2">שנתיים</option>
+                  <option value="3" selected>3 שנים</option>
+                  <option value="5">5 שנים</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn-submit" id="createUserBtn">צור משתמש</button>
+        </form>
+      </div>
+
+      <!-- Vehicles -->
+      <div class="page" id="page-vehicles">
+        <div class="tbl-card">
+          <table>
+            <thead><tr><th>VIN</th><th>כינוי</th><th>דגם</th><th>שנה</th><th>בעלים</th><th>תאריך</th></tr></thead>
+            <tbody id="vehiclesBody"><tr><td colspan="6"><div class="empty-state"><div class="loading-bar"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Logs -->
+      <div class="page" id="page-logs">
+        <div class="tbl-card">
+          <table>
+            <thead><tr><th>משתמש</th><th>VIN</th><th>פקודה</th><th>מקור</th><th>סטטוס</th><th>זמן</th></tr></thead>
+            <tbody id="logsBody"><tr><td colspan="6"><div class="empty-state"><div class="loading-bar"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="credOverlay">
+  <div class="modal">
+    <h2>משתמש נוצר בהצלחה</h2>
+    <p class="modal-sub">שלח את הפרטים הבאים ללקוח</p>
+    <div class="cred-box" id="credBox"></div>
+    <div class="modal-btns">
+      <button class="btn-copy" onclick="copyCredentials()">העתק ללוח</button>
+      <button class="btn-close" onclick="closeCredModal()">סגור</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="toast-ic"></span><span id="toastMsg"></span></div>
+
+<script>
+// ═══════════════════════════════════════
+// APP LOGIC
+// ═══════════════════════════════════════
+const qp = new URLSearchParams(location.search);
+let API = (qp.get('api') || localStorage.getItem('ygmc_api') || '/api').replace(/\/$/, '');
+if (qp.get('api')) localStorage.setItem('ygmc_api', API);
+
+let statsTimer = null, currentPage = 'dashboard', currentStatusFilter = '';
+
+const PAGE_TITLES = { dashboard:'דשבורד', users:'משתמשים', createUser:'צור משתמש', vehicles:'רכבים', logs:'לוג פקודות' };
+
+function getToken() { return localStorage.getItem('ygmc_token'); }
+function setToken(t) { localStorage.setItem('ygmc_token', t); }
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+getToken(), ...(opts.headers||{}) },
+  });
+  if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+  return res;
+}
+
+function logout() {
+  localStorage.removeItem('ygmc_token');
+  clearInterval(statsTimer);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+// Login
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPwd').value;
+  const errEl = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'מתחבר...';
+  try {
+    const res = await fetch(API + '/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password: pwd }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.user?.role !== 'admin') {
+      errEl.textContent = data.message || 'שם משתמש או סיסמה שגויים';
+      errEl.style.display = 'block'; return;
+    }
+    setToken(data.token);
+    showApp();
+  } catch { errEl.textContent = 'שגיאת חיבור לשרת'; errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = 'כניסה'; }
+});
+document.getElementById('loginPwd').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+
+function showApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadDashboard();
+  statsTimer = setInterval(loadStats, 30000);
+}
+
+window.addEventListener('load', () => { if (getToken()) showApp(); });
+
+// Nav
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('topbarTitle').textContent = PAGE_TITLES[id] || id;
+  currentPage = id;
+  if (id === 'dashboard') loadDashboard();
+  else if (id === 'users') loadUsers('');
+  else if (id === 'vehicles') loadVehicles();
+  else if (id === 'logs') loadLogs();
+}
+
+function refreshCurrentPage() {
+  if (currentPage === 'dashboard') loadDashboard();
+  else if (currentPage === 'users') loadUsers(currentStatusFilter);
+  else if (currentPage === 'vehicles') loadVehicles();
+  else if (currentPage === 'logs') loadLogs();
+}
+
+// Toast
+let toastT;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// Helpers
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('he-IL') : '—'; }
+function daysLeft(d) {
+  if (!d) return '—';
+  const days = Math.floor((new Date(d) - new Date()) / 86400000);
+  if (days < 0) return `<span style="color:var(--accent);font-weight:700">פג תוקף</span>`;
+  if (days < 30) return `<span style="color:var(--orange);font-weight:700">${days}</span>`;
+  return `<span style="color:var(--green)">${days}</span>`;
+}
+function badge(s) {
+  const m = { pending:['ממתין','bp'], approved:['מאושר','ba'], suspended:['מושהה','bs'], rejected:['נדחה','br'] };
+  const [l, c] = m[s] || [s,'br'];
+  return `<span class="badge ${c}"><span class="badge-dot"></span>${l}</span>`;
+}
+function cmdColor(s) { return s==='success'?'var(--green)':s==='failed'?'var(--accent)':s==='sent'?'var(--orange)':'var(--muted)'; }
+function emptyRow(n, msg) { return `<tr><td colspan="${n}"><div class="empty-state"><div class="empty-line">${msg}</div></div></td></tr>`; }
+function loadingRow(n) { return `<tr><td colspan="${n}"><div class="empty-state"><div class="loading-bar"></div></div></td></tr>`; }
+
+// Dashboard
+async function loadDashboard() { await Promise.all([loadStats(), loadPending()]); }
+
+async function loadStats() {
+  try {
+    const res = await apiFetch('/admin/stats');
+    const d = await res.json();
+    const pending = d.pendingApproval ?? 0;
+    const badge = document.getElementById('pendingBadge');
+    badge.textContent = pending;
+    badge.style.display = pending > 0 ? 'inline-block' : 'none';
+    document.getElementById('pendingCount').textContent = pending;
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-card t-silver"><div class="stat-label">משתמשים</div><div class="stat-val">${d.totalUsers ?? 0}</div></div>
+      <div class="stat-card t-orange"><div class="stat-label">ממתינים</div><div class="stat-val">${pending}</div></div>
+      <div class="stat-card t-red"><div class="stat-label">פג תוקף בקרוב</div><div class="stat-val">${d.expiringLicenses ?? 0}</div></div>
+      <div class="stat-card t-green"><div class="stat-label">רכבים פעילים</div><div class="stat-val">${d.activeVehicles ?? 0}</div></div>
+      <div class="stat-card t-blue"><div class="stat-label">פקודות</div><div class="stat-val">${d.totalCommands ?? 0}</div></div>`;
+  } catch {}
+}
+
+async function loadPending() {
+  try {
+    const res = await apiFetch('/admin/users?status=pending');
+    const users = await res.json();
+    const tb = document.getElementById('pendingBody');
+    if (!users.length) { tb.innerHTML = emptyRow(6, 'אין ממתינים לאישור'); return; }
+    tb.innerHTML = users.map(u => `<tr>
+      <td style="font-weight:600">${u.name}</td>
+      <td style="color:var(--sub)">${u.email}</td>
+      <td>${u.phone||'—'}</td>
+      <td><span class="mono">${u.vin||'—'}</span></td>
+      <td style="color:var(--sub);font-size:11px">${fmtDate(u.created_at)}</td>
+      <td><div class="act">
+        <button class="btn-sm bg" onclick="approveUser('${u.id}')">אשר</button>
+        <button class="btn-sm br2" onclick="rejectUser('${u.id}')">דחה</button>
+      </div></td></tr>`).join('');
+  } catch {}
+}
+
+// Users
+function filterUsers(status, btn) {
+  currentStatusFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  loadUsers(status);
+}
+
+async function loadUsers(status) {
+  document.getElementById('usersBody').innerHTML = loadingRow(8);
+  try {
+    const res = await apiFetch('/admin/users' + (status ? '?status='+status : ''));
+    const users = await res.json();
+    const tb = document.getElementById('usersBody');
+    if (!users.length) { tb.innerHTML = emptyRow(8,'אין משתמשים'); return; }
+    tb.innerHTML = users.map(u => {
+      const acts = [];
+      if (u.status==='pending') { acts.push(`<button class="btn-sm bg" onclick="approveUser('${u.id}')">אשר</button>`); acts.push(`<button class="btn-sm br2" onclick="rejectUser('${u.id}')">דחה</button>`); }
+      if (u.status==='approved') acts.push(`<button class="btn-sm bo" onclick="suspendUser('${u.id}')">השהה</button>`);
+      if (u.status==='suspended') acts.push(`<button class="btn-sm bg" onclick="approveUser('${u.id}')">הפעל</button>`);
+      if (u.status!=='rejected') { acts.push(`<button class="btn-sm bb" onclick="extendLicense('${u.id}',1)">+1ש</button>`); acts.push(`<button class="btn-sm bb" onclick="extendLicense('${u.id}',3)">+3ש</button>`); }
+      return `<tr>
+        <td style="font-weight:600">${u.name}</td>
+        <td style="color:var(--sub)">${u.email}</td>
+        <td>${badge(u.status)}</td>
+        <td style="font-size:11px">${fmtDate(u.license_expires_at)}</td>
+        <td>${daysLeft(u.license_expires_at)}</td>
+        <td><span class="mono">${u.vin||'—'}</span></td>
+        <td>${u.enrollment_count>0?`<span style="color:var(--green);font-weight:700">כן</span>`:`<span style="color:var(--muted)">—</span>`}</td>
+        <td><div class="act">${acts.join('')}</div></td></tr>`;
+    }).join('');
+  } catch {}
+}
+
+async function approveUser(id) { try { await apiFetch('/admin/users/'+id+'/approve',{method:'POST'}); toast('משתמש אושר'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','err'); } }
+async function rejectUser(id) { if(!confirm('לדחות?')) return; try { await apiFetch('/admin/users/'+id+'/reject',{method:'POST'}); toast('משתמש נדחה'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','err'); } }
+async function suspendUser(id) { if(!confirm('להשהות?')) return; try { await apiFetch('/admin/users/'+id+'/suspend',{method:'POST'}); toast('הושהה','err'); loadUsers(currentStatusFilter); } catch { toast('שגיאה','err'); } }
+async function extendLicense(id, years) { try { await apiFetch('/admin/users/'+id+'/extend-license',{method:'POST',body:JSON.stringify({years})}); toast(`רישיון הוארך ב-${years} שנים`); loadUsers(currentStatusFilter); } catch { toast('שגיאה','err'); } }
+
+// Create User
+async function submitCreateUser(e) {
+  e.preventDefault();
+  const btn = document.getElementById('createUserBtn');
+  btn.disabled = true; btn.textContent = 'יוצר...';
+  try {
+    const body = { name:document.getElementById('cu_name').value, email:document.getElementById('cu_email').value, phone:document.getElementById('cu_phone').value, password:document.getElementById('cu_password').value, vin:document.getElementById('cu_vin').value, vehicleNickname:document.getElementById('cu_nickname').value, gmUsername:document.getElementById('cu_gmUser').value, gmPassword:document.getElementById('cu_gmPass').value, licenseYears:parseInt(document.getElementById('cu_years').value) };
+    const res = await apiFetch('/admin/users',{method:'POST',body:JSON.stringify(body)});
+    const data = await res.json();
+    if (!res.ok) { toast(data.message||'שגיאה','err'); return; }
+    showCredModal(data); e.target.reset();
+  } catch { toast('שגיאה ביצירת משתמש','err'); }
+  finally { btn.disabled = false; btn.textContent = 'צור משתמש'; }
+}
+
+let lastCreds = '';
+function showCredModal(d) {
+  lastCreds = `Email:    ${d.email}\nPassword: ${d.password}\nVIN:      ${d.vin}\nLicense:  ${fmtDate(d.licenseExpiresAt)}`;
+  document.getElementById('credBox').textContent = lastCreds;
+  document.getElementById('credOverlay').classList.add('show');
+}
+function closeCredModal() { document.getElementById('credOverlay').classList.remove('show'); }
+function copyCredentials() { navigator.clipboard.writeText(lastCreds).then(()=>toast('הועתק ללוח')).catch(()=>toast('שגיאה','err')); }
+
+// Vehicles
+async function loadVehicles() {
+  document.getElementById('vehiclesBody').innerHTML = loadingRow(6);
+  try {
+    const res = await apiFetch('/admin/vehicles');
+    const v = await res.json();
+    const tb = document.getElementById('vehiclesBody');
+    if (!v.length) { tb.innerHTML = emptyRow(6,'אין רכבים'); return; }
+    tb.innerHTML = v.map(r => `<tr>
+      <td><span class="mono">${r.vin}</span></td>
+      <td>${r.nickname||'—'}</td>
+      <td>${r.model||r.make||'—'}</td>
+      <td>${r.year||'—'}</td>
+      <td style="font-weight:500">${r.owner_name||'—'}</td>
+      <td style="color:var(--sub);font-size:11px">${fmtDate(r.created_at)}</td></tr>`).join('');
+  } catch {}
+}
+
+// Logs
+async function loadLogs() {
+  document.getElementById('logsBody').innerHTML = loadingRow(6);
+  try {
+    const res = await apiFetch('/admin/command-logs');
+    const logs = await res.json();
+    const tb = document.getElementById('logsBody');
+    if (!logs.length) { tb.innerHTML = emptyRow(6,'אין פקודות'); return; }
+    tb.innerHTML = logs.map(l => `<tr>
+      <td style="font-weight:500">${l.user_name||'—'}</td>
+      <td><span class="mono">${l.vin||'—'}</span></td>
+      <td style="font-weight:600">${l.command}</td>
+      <td style="color:var(--sub)">${l.source}</td>
+      <td style="color:${cmdColor(l.status)};font-weight:700">${l.status}</td>
+      <td style="font-size:11px;color:var(--sub)">${new Date(l.executed_at).toLocaleString('he-IL')}</td></tr>`).join('');
+  } catch {}
+}
+</script>
+</body>
+</html>
