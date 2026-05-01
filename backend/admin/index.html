@@ -62,18 +62,26 @@ label { display: block; font-size: 11px; font-weight: 600; color: var(--sub); ma
 a { color: inherit; text-decoration: none; }
 
 /* ═══════════════════════════════════════
-   CANVAS
+   VIDEO BACKGROUND
 ═══════════════════════════════════════ */
-#bgCanvas {
+#bgVideo {
   position: fixed; inset: 0; width: 100%; height: 100%;
   z-index: 0; pointer-events: none;
+  object-fit: cover;
+  filter: brightness(0.45) saturate(1.1);
+}
+#bgOverlay {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0,0,0,0.6) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(0,0,12,0.55) 0%, rgba(0,0,12,0.2) 50%, rgba(0,0,12,0.7) 100%);
 }
 
 /* ═══════════════════════════════════════
    LOGIN
 ═══════════════════════════════════════ */
 #loginPage {
-  position: fixed; inset: 0; z-index: 10;
+  position: fixed; inset: 0; z-index: 2;
   display: flex; align-items: center; justify-content: center;
 }
 .login-wrap {
@@ -139,7 +147,7 @@ a { color: inherit; text-decoration: none; }
    APP LAYOUT
 ═══════════════════════════════════════ */
 #app {
-  position: fixed; inset: 0; z-index: 10;
+  position: fixed; inset: 0; z-index: 2;
   display: none; flex-direction: row;
 }
 
@@ -469,7 +477,10 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
 </head>
 <body>
 
-<canvas id="bgCanvas"></canvas>
+<video id="bgVideo" autoplay loop muted playsinline>
+  <source src="bg.mp4" type="video/mp4">
+</video>
+<div id="bgOverlay"></div>
 
 <!-- ═══ LOGIN ═══ -->
 <div id="loginPage">
@@ -703,193 +714,6 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
 <div class="toast" id="toast"><span class="toast-ic"></span><span id="toastMsg"></span></div>
 
 <script>
-// ═══════════════════════════════════════
-// CANVAS — Night Road Animation
-// ═══════════════════════════════════════
-(function() {
-  const canvas = document.getElementById('bgCanvas');
-  const ctx = canvas.getContext('2d');
-  let W, H, t = 0;
-
-  const stars = Array.from({length: 120}, () => ({
-    x: Math.random(), y: Math.random() * 0.42,
-    r: Math.random() * 1.1 + 0.2,
-    a: Math.random() * 0.55 + 0.2,
-    speed: Math.random() * 1.5 + 0.5,
-  }));
-
-  // Reflective road studs
-  const studs = Array.from({length: 18}, (_, i) => ({ pos: i / 18 }));
-
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    const VX = W / 2, VY = H * 0.36;
-
-    // Sky gradient
-    const sky = ctx.createLinearGradient(0, 0, 0, VY * 1.6);
-    sky.addColorStop(0, '#00000c');
-    sky.addColorStop(0.6, '#04021a');
-    sky.addColorStop(1, '#0a041e');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, W, H);
-
-    // Stars
-    stars.forEach(s => {
-      const tw = 0.65 + 0.35 * Math.sin(t * s.speed + s.x * 20);
-      ctx.beginPath();
-      ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(210,220,255,${s.a * tw})`;
-      ctx.fill();
-    });
-
-    // Horizon city glow (warm amber)
-    const hg = ctx.createRadialGradient(VX, VY, 0, VX, VY, W * 0.55);
-    hg.addColorStop(0, 'rgba(255,120,30,0.09)');
-    hg.addColorStop(0.5, 'rgba(180,60,20,0.04)');
-    hg.addColorStop(1, 'transparent');
-    ctx.fillStyle = hg;
-    ctx.fillRect(0, 0, W, H);
-
-    // Road left/right edge at normalized parameter p ∈ [0,1]
-    const RL = p => VX - p * (VX - W * 0.04);
-    const RR = p => VX + p * (W * 0.96 - VX);
-    const RY = p => VY + p * (H - VY);
-
-    // Road surface
-    const roadGrad = ctx.createLinearGradient(0, VY, 0, H);
-    roadGrad.addColorStop(0, '#06041a');
-    roadGrad.addColorStop(0.4, '#0c0820');
-    roadGrad.addColorStop(1, '#100c26');
-    ctx.fillStyle = roadGrad;
-    ctx.beginPath();
-    ctx.moveTo(VX, VY);
-    for (let i = 0; i <= 20; i++) { const p = i / 20; ctx.lineTo(RL(p), RY(p)); }
-    for (let i = 20; i >= 0; i--) { const p = i / 20; ctx.lineTo(RR(p), RY(p)); }
-    ctx.closePath();
-    ctx.fill();
-
-    // Road surface sheen (reflection strip down center)
-    const sheen = ctx.createLinearGradient(0, VY, 0, H);
-    sheen.addColorStop(0, 'rgba(100,80,180,0.0)');
-    sheen.addColorStop(0.3, 'rgba(80,60,160,0.04)');
-    sheen.addColorStop(1, 'rgba(60,40,120,0.08)');
-    ctx.fillStyle = sheen;
-    ctx.beginPath();
-    ctx.moveTo(VX, VY);
-    for (let i = 0; i <= 20; i++) {
-      const p = i / 20;
-      const lx = VX - p * (VX - VX * 0.6);
-      const rx = VX + p * (VX * 0.6 - VX + VX * 0.1);
-      if (i === 0) ctx.moveTo(lx, RY(p));
-      else ctx.lineTo(lx, RY(p));
-    }
-    for (let i = 20; i >= 0; i--) {
-      const p = i / 20;
-      const rx = VX + p * (VX * 0.08);
-      ctx.lineTo(rx, RY(p));
-    }
-    ctx.closePath();
-    ctx.fill();
-
-    // Center dashes (white)
-    const dashN = 14;
-    for (let i = 0; i < dashN; i++) {
-      const seg = 1 / dashN;
-      let p0 = ((i * seg) + t * 0.35) % 1;
-      let p1 = p0 + seg * 0.45;
-      if (p1 > 1) p1 = 1;
-      if (p0 < 0.01) continue;
-
-      const y0 = RY(p0), y1 = RY(p1);
-      const wid = 1.5 + p0 * 10;
-      const alpha = 0.12 + p0 * 0.65;
-
-      ctx.beginPath();
-      ctx.moveTo(VX - wid / 2, y0);
-      ctx.lineTo(VX + wid / 2, y0);
-      ctx.lineTo(VX + wid / 2, y1);
-      ctx.lineTo(VX - wid / 2, y1);
-      ctx.closePath();
-      ctx.fillStyle = `rgba(240,235,200,${alpha})`;
-      ctx.fill();
-    }
-
-    // Left edge line
-    const drawEdge = (side) => {
-      ctx.beginPath();
-      for (let i = 2; i <= 20; i++) {
-        const p = i / 20;
-        const x = side === 'L' ? RL(p) : RR(p);
-        const y = RY(p);
-        const alpha = 0.08 + (p - 0.1) * 0.25;
-        if (i === 2) { ctx.moveTo(x, y); continue; }
-        ctx.lineTo(x, y);
-      }
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    };
-    drawEdge('L'); drawEdge('R');
-
-    // Reflective road studs (side)
-    studs.forEach(s => {
-      const p = ((s.pos + t * 0.35) % 1);
-      if (p < 0.04) return;
-      const y = RY(p);
-      const alpha = (0.3 + p * 0.7) * 0.9;
-      const sz = 1.5 + p * 3;
-
-      // Left stud
-      const lx = RL(p) + p * 18;
-      const gl = ctx.createRadialGradient(lx, y, 0, lx, y, sz * 2.5);
-      gl.addColorStop(0, `rgba(255,100,60,${alpha})`);
-      gl.addColorStop(1, 'transparent');
-      ctx.fillStyle = gl;
-      ctx.beginPath();
-      ctx.arc(lx, y, sz * 2.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Right stud
-      const rx = RR(p) - p * 18;
-      const gr = ctx.createRadialGradient(rx, y, 0, rx, y, sz * 2.5);
-      gr.addColorStop(0, `rgba(255,100,60,${alpha})`);
-      gr.addColorStop(1, 'transparent');
-      ctx.fillStyle = gr;
-      ctx.beginPath();
-      ctx.arc(rx, y, sz * 2.5, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    // Headlight beam from behind (driver POV)
-    const beam = ctx.createRadialGradient(VX, H * 0.7, 0, VX, H * 0.7, H * 0.55);
-    beam.addColorStop(0, 'rgba(255,245,210,0.06)');
-    beam.addColorStop(0.5, 'rgba(200,190,255,0.02)');
-    beam.addColorStop(1, 'transparent');
-    ctx.fillStyle = beam;
-    ctx.fillRect(0, 0, W, H);
-
-    // Dark overlay for readability
-    const ov = ctx.createLinearGradient(0, 0, 0, H);
-    ov.addColorStop(0, 'rgba(0,0,8,0.55)');
-    ov.addColorStop(0.5, 'rgba(0,0,8,0.3)');
-    ov.addColorStop(1, 'rgba(0,0,8,0.6)');
-    ctx.fillStyle = ov;
-    ctx.fillRect(0, 0, W, H);
-
-    t += 0.012;
-    requestAnimationFrame(draw);
-  }
-
-  resize();
-  window.addEventListener('resize', resize);
-  draw();
-})();
-
 // ═══════════════════════════════════════
 // APP LOGIC
 // ═══════════════════════════════════════
