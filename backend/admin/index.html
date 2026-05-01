@@ -5,228 +5,636 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>YedidiaGMC Admin</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0A0E1A;--card:#111827;--border:#1A2535;--accent:#E31837;--green:#22C55E;--orange:#F59E0B;--blue:#3B82F6;--text:#F0F4F8;--sub:#9CA3AF;--muted:#6B7A8D;--input:#0D1420}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+:root{
+  --bg:#060912;
+  --bg2:#080d18;
+  --card:#0e1422;
+  --card2:#111928;
+  --border:#1c2740;
+  --border2:#243050;
+  --accent:#E31837;
+  --accent2:#ff2d4e;
+  --accent-glow:rgba(227,24,55,0.35);
+  --green:#22C55E;
+  --green-glow:rgba(34,197,94,0.25);
+  --orange:#F59E0B;
+  --orange-glow:rgba(245,158,11,0.25);
+  --blue:#3B82F6;
+  --blue-glow:rgba(59,130,246,0.25);
+  --purple:#8B5CF6;
+  --text:#F0F4F8;
+  --text2:#c8d3e0;
+  --sub:#6B7A8D;
+  --muted:#3d4f63;
+  --input:#090e1a;
+  --sidebar-w:240px;
+}
+
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* ── Global ── */
 a{color:inherit;text-decoration:none}
-button{cursor:pointer;border:none;font-family:inherit;font-size:13px;border-radius:8px;padding:7px 14px;transition:opacity .15s}
-button:hover{opacity:.85}
-input,select{background:var(--input);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px;width:100%;font-family:inherit}
-input:focus,select:focus{outline:2px solid var(--accent)}
-label{display:block;font-size:13px;color:var(--sub);margin-bottom:5px}
-.field{margin-bottom:14px}
+button{cursor:pointer;border:none;font-family:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:7px 16px;transition:all .2s;letter-spacing:.01em}
+input,select,textarea{background:var(--input);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 14px;font-size:14px;width:100%;font-family:inherit;transition:border-color .2s,box-shadow .2s;outline:none}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+input::placeholder{color:var(--muted)}
+label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px;letter-spacing:.03em;text-transform:uppercase}
+.field{margin-bottom:16px}
 
-/* Login */
-#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh}
-.loginBox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px;width:360px}
-.loginLogo{text-align:center;margin-bottom:28px}
-.loginLogo h1{font-size:22px;font-weight:800;color:var(--accent)}
-.loginLogo p{color:var(--sub);font-size:13px;margin-top:4px}
-.btnPrimary{background:var(--accent);color:#fff;width:100%;padding:11px;font-size:15px;font-weight:700}
-.err{background:rgba(227,24,55,.12);border:1px solid rgba(227,24,55,.3);border-radius:8px;padding:10px 12px;color:var(--accent);font-size:13px;margin-bottom:14px;display:none}
+/* ══════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════ */
+#loginPage{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;
+  background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(227,24,55,0.12) 0%, transparent 70%),
+             radial-gradient(ellipse 60% 40% at 80% 110%, rgba(59,130,246,0.08) 0%, transparent 60%),
+             var(--bg);
+}
+.loginBox{
+  background:rgba(14,20,34,0.85);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:48px 44px;
+  width:400px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  position:relative;
+  overflow:hidden;
+}
+.loginBox::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(227,24,55,0.5),transparent);
+}
+.loginLogo{text-align:center;margin-bottom:36px}
+.loginLogo .logo-icon{
+  width:64px;height:64px;border-radius:18px;margin:0 auto 16px;
+  background:linear-gradient(135deg,#E31837,#8B1827);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;
+  box-shadow:0 8px 32px rgba(227,24,55,0.4);
+}
+.loginLogo h1{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.02em}
+.loginLogo p{color:var(--sub);font-size:13px;margin-top:4px;font-weight:400}
+.btnPrimary{
+  background:linear-gradient(135deg,#E31837,#c0152e);
+  color:#fff;width:100%;padding:13px;font-size:15px;font-weight:700;
+  border-radius:12px;
+  box-shadow:0 4px 20px rgba(227,24,55,0.35);
+  transition:all .2s;letter-spacing:.02em;
+}
+.btnPrimary:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(227,24,55,0.5)}
+.btnPrimary:active{transform:translateY(0)}
+.btnPrimary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.err{
+  background:rgba(227,24,55,.1);border:1px solid rgba(227,24,55,.25);
+  border-radius:10px;padding:11px 14px;color:#ff6b7d;font-size:13px;
+  margin-bottom:16px;display:none;font-weight:500;
+}
 
-/* Layout */
-#app{display:none;flex-direction:column;min-height:100vh}
-.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.brand{font-size:17px;font-weight:800;color:var(--accent)}
-.tabs{display:flex;gap:4px}
-.tab{background:none;color:var(--sub);padding:7px 14px;border-radius:8px;font-size:14px}
-.tab.active{background:rgba(227,24,55,.15);color:var(--accent)}
-.btnLogout{background:rgba(255,255,255,.06);color:var(--sub)}
-.main{padding:24px;max-width:1200px;margin:0 auto;width:100%}
+/* ══════════════════════════════════════════
+   APP LAYOUT
+══════════════════════════════════════════ */
+#app{display:none;height:100vh;flex-direction:row}
 
-/* Page */
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--card);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;overflow:hidden;
+  position:relative;
+}
+.sidebar::after{
+  content:'';position:absolute;top:0;right:0;width:1px;height:100%;
+  background:linear-gradient(180deg,transparent,rgba(227,24,55,0.3) 40%,transparent);
+  pointer-events:none;
+}
+.sidebar-header{
+  padding:24px 20px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-brand{display:flex;align-items:center;gap:12px}
+.brand-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#E31837,#8B1827);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(227,24,55,0.35);
+}
+.brand-text{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.01em}
+.brand-sub{font-size:11px;color:var(--sub);font-weight:400;margin-top:1px}
+
+.sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.nav-section-label{
+  font-size:10px;font-weight:700;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:12px 8px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:10px;
+  color:var(--sub);font-size:14px;font-weight:500;
+  cursor:pointer;transition:all .18s;
+  border:none;background:none;width:100%;text-align:right;
+}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--text2)}
+.nav-item.active{
+  background:rgba(227,24,55,.12);color:var(--accent2);
+  box-shadow:inset 0 0 0 1px rgba(227,24,55,.2);
+}
+.nav-item .nav-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+  background:rgba(255,255,255,.04);
+  transition:all .18s;
+}
+.nav-item.active .nav-icon{background:rgba(227,24,55,.2)}
+.nav-item .nav-badge{
+  margin-right:auto;background:var(--accent);color:#fff;
+  font-size:10px;font-weight:800;border-radius:99px;
+  padding:2px 7px;min-width:20px;text-align:center;
+}
+
+.sidebar-footer{
+  padding:16px 12px;border-top:1px solid var(--border);
+}
+.user-card{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+}
+.user-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;flex-shrink:0;
+  color:#fff;
+}
+.user-name{font-size:13px;font-weight:600;color:var(--text2)}
+.user-role{font-size:11px;color:var(--sub)}
+.btn-logout{
+  background:none;color:var(--sub);padding:4px;
+  border-radius:6px;font-size:16px;margin-right:auto;
+  transition:color .15s;
+}
+.btn-logout:hover{color:var(--accent)}
+
+/* ── Main content ── */
+.content{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{
+  height:56px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 28px;
+  background:rgba(8,13,24,0.8);backdrop-filter:blur(12px);
+  gap:16px;flex-shrink:0;
+  position:sticky;top:0;z-index:10;
+}
+.page-heading{font-size:17px;font-weight:700;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px;margin-right:auto}
+.refresh-btn{
+  background:rgba(255,255,255,.06);color:var(--sub);
+  border:1px solid var(--border);padding:6px 12px;
+  border-radius:8px;font-size:12px;
+}
+.refresh-btn:hover{color:var(--text);border-color:var(--border2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.dot-label{font-size:12px;color:var(--sub)}
+
+.main{flex:1;overflow-y:auto;padding:28px}
+
+/* ── Pages ── */
 .page{display:none}
 .page.active{display:block}
-.pageTitle{font-size:20px;font-weight:800;margin-bottom:20px}
 
-/* Cards */
-.statsRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px}
-.statCard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
-.statCard .val{font-size:28px;font-weight:800;line-height:1}
-.statCard .lbl{color:var(--sub);font-size:12px;margin-top:4px}
+/* ══════════════════════════════════════════
+   STAT CARDS
+══════════════════════════════════════════ */
+.statsRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.statCard{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:16px;padding:20px;
+  position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+}
+.statCard:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.statCard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+}
+.statCard.c-red::before{background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.statCard.c-green::before{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.statCard.c-orange::before{background:linear-gradient(90deg,transparent,var(--orange),transparent)}
+.statCard.c-blue::before{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+.statCard.c-purple::before{background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+.stat-icon{font-size:20px;margin-bottom:12px;display:block}
+.stat-val{font-size:32px;font-weight:900;line-height:1;letter-spacing:-.03em}
+.stat-lbl{color:var(--sub);font-size:12px;margin-top:6px;font-weight:500;letter-spacing:.02em;text-transform:uppercase}
+.statCard.c-red .stat-val{color:var(--accent)}
+.statCard.c-green .stat-val{color:var(--green)}
+.statCard.c-orange .stat-val{color:var(--orange)}
+.statCard.c-blue .stat-val{color:var(--blue)}
+.statCard.c-purple .stat-val{color:var(--purple)}
 
-/* Table */
-.tableWrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+/* ══════════════════════════════════════════
+   SECTION HEADERS & CARDS
+══════════════════════════════════════════ */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-title{font-size:15px;font-weight:700;color:var(--text2)}
+.sec-count{
+  background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:99px;padding:2px 10px;font-size:12px;color:var(--sub);font-weight:600;
+}
+
+.tableCard{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,.2);
+}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{background:rgba(255,255,255,.04);padding:10px 14px;text-align:right;color:var(--sub);font-weight:600;border-bottom:1px solid var(--border)}
-td{padding:10px 14px;border-bottom:1px solid var(--border)}
+th{
+  background:rgba(255,255,255,.03);
+  padding:12px 16px;text-align:right;
+  color:var(--sub);font-weight:600;font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+}
+td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
+tbody tr{transition:background .15s}
+tbody tr:hover td{background:rgba(255,255,255,.025)}
 
-/* Badges */
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
-.badge-pending{background:rgba(245,158,11,.15);color:var(--orange)}
-.badge-approved{background:rgba(34,197,94,.15);color:var(--green)}
-.badge-suspended{background:rgba(227,24,55,.15);color:var(--accent)}
-.badge-rejected{background:rgba(156,163,175,.15);color:var(--sub)}
+/* ── Badges ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;
+  letter-spacing:.02em;
+}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-pending{background:rgba(245,158,11,.12);color:var(--orange);border:1px solid rgba(245,158,11,.2)}
+.badge-pending::before{background:var(--orange);box-shadow:0 0 6px var(--orange)}
+.badge-approved{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.badge-approved::before{background:var(--green);box-shadow:0 0 6px var(--green)}
+.badge-suspended{background:rgba(227,24,55,.1);color:var(--accent2);border:1px solid rgba(227,24,55,.2)}
+.badge-suspended::before{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.badge-rejected{background:rgba(107,122,141,.1);color:var(--sub);border:1px solid var(--border)}
+.badge-rejected::before{background:var(--muted)}
 
-/* Action buttons */
-.btnSm{padding:5px 10px;font-size:12px;border-radius:6px}
-.btnGreen{background:rgba(34,197,94,.2);color:var(--green)}
-.btnRed{background:rgba(227,24,55,.2);color:var(--accent)}
-.btnOrange{background:rgba(245,158,11,.2);color:var(--orange)}
-.btnBlue{background:rgba(59,130,246,.2);color:var(--blue)}
-.actBtns{display:flex;gap:5px;flex-wrap:wrap}
+/* ── Action buttons ── */
+.btnSm{padding:5px 12px;font-size:11px;border-radius:7px;font-weight:700;letter-spacing:.02em}
+.btnGreen{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.btnGreen:hover{background:rgba(34,197,94,.2);box-shadow:0 0 12px var(--green-glow)}
+.btnRed{background:rgba(227,24,55,.1);color:var(--accent2);border:1px solid rgba(227,24,55,.2)}
+.btnRed:hover{background:rgba(227,24,55,.2);box-shadow:0 0 12px var(--accent-glow)}
+.btnOrange{background:rgba(245,158,11,.1);color:var(--orange);border:1px solid rgba(245,158,11,.2)}
+.btnOrange:hover{background:rgba(245,158,11,.2);box-shadow:0 0 12px var(--orange-glow)}
+.btnBlue{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.btnBlue:hover{background:rgba(59,130,246,.2);box-shadow:0 0 12px var(--blue-glow)}
+.actBtns{display:flex;gap:6px;flex-wrap:wrap}
 
-/* Form */
-.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
-.formCard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px}
-.formCard h3{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--sub)}
-@media(max-width:600px){.formGrid{grid-template-columns:1fr}}
+/* ── Filter bar ── */
+.filterBar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.filterBtn{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);color:var(--sub);
+  padding:7px 16px;border-radius:10px;font-size:13px;font-weight:500;
+  transition:all .18s;
+}
+.filterBtn:hover{border-color:var(--border2);color:var(--text2)}
+.filterBtn.active{border-color:var(--accent);color:var(--accent);background:rgba(227,24,55,.08)}
 
-/* Filter bar */
-.filterBar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.filterBtn{background:var(--card);border:1px solid var(--border);color:var(--sub);padding:6px 14px;border-radius:8px;font-size:13px}
-.filterBtn.active{border-color:var(--accent);color:var(--accent)}
+/* ── Form cards ── */
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+.formCard{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:16px;padding:24px;margin-bottom:20px;
+}
+.formCard-title{
+  font-size:13px;font-weight:700;color:var(--sub);
+  margin-bottom:18px;letter-spacing:.04em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+.formCard-title::before{
+  content:'';width:3px;height:14px;border-radius:2px;
+  background:var(--accent);display:block;
+}
+@media(max-width:720px){.formGrid{grid-template-columns:1fr}}
 
-/* Toast */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:14px;z-index:999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
-.toast.show{display:block}
-.toast.success{border-color:var(--green);color:var(--green)}
-.toast.error{border-color:var(--accent);color:var(--accent)}
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:12px;padding:14px 20px;font-size:14px;font-weight:500;
+  z-index:9999;display:none;
+  box-shadow:0 16px 48px rgba(0,0,0,.6);
+  backdrop-filter:blur(10px);
+  max-width:320px;
+  animation:toastIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.toast.show{display:flex;align-items:center;gap:10px}
+.toast.success{border-color:rgba(34,197,94,.3)}
+.toast.success::before{content:'✓';color:var(--green);font-weight:800}
+.toast.error{border-color:rgba(227,24,55,.3)}
+.toast.error::before{content:'✕';color:var(--accent);font-weight:800}
+.toast-msg{color:var(--text2)}
 
-/* Modal */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center}
-.overlay.show{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto}
-.modal h2{font-size:17px;font-weight:800;margin-bottom:18px}
-.credBox{background:var(--input);border-radius:8px;padding:14px;font-family:monospace;font-size:13px;line-height:1.8;margin-bottom:16px;white-space:pre-wrap}
-.sectionTitle{font-size:14px;font-weight:700;color:var(--sub);margin:20px 0 12px}
+/* ── Modal ── */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(6px);
+  z-index:200;display:none;
+  align-items:center;justify-content:center;
+}
+.overlay.show{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--card2);
+  border:1px solid var(--border2);
+  border-radius:20px;padding:32px;
+  max-width:500px;width:90%;
+  max-height:85vh;overflow-y:auto;
+  box-shadow:0 32px 80px rgba(0,0,0,.7);
+  position:relative;overflow:hidden;
+  animation:modalIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(34,197,94,.5),transparent);
+}
+.modal h2{font-size:18px;font-weight:800;margin-bottom:6px;color:var(--text)}
+.modal-sub{color:var(--sub);font-size:13px;margin-bottom:20px}
+.credBox{
+  background:var(--input);border:1px solid var(--border2);
+  border-radius:12px;padding:16px;
+  font-family:'Courier New',monospace;font-size:13px;
+  line-height:2;white-space:pre-wrap;color:var(--text2);
+  margin-bottom:18px;
+}
+.modal-actions{display:flex;gap:10px}
+.btnCopy{
+  background:rgba(34,197,94,.1);color:var(--green);
+  border:1px solid rgba(34,197,94,.2);
+  padding:9px 18px;font-size:13px;border-radius:10px;
+}
+.btnClose{
+  background:rgba(255,255,255,.06);color:var(--sub);
+  border:1px solid var(--border);
+  padding:9px 18px;font-size:13px;border-radius:10px;
+}
 
-/* Section header */
-.secHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+/* ── Empty state ── */
+.empty{
+  text-align:center;padding:48px 24px;color:var(--muted);
+}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.5}
+.empty-text{font-size:13px}
+
+/* ── Mono ── */
+.mono{font-family:'Courier New',monospace;font-size:12px;color:var(--sub)}
+
+/* ── Divider ── */
+.divider{height:1px;background:var(--border);margin:24px 0}
+
+/* ── Loading spinner ── */
+.spinner{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--border2);
+  border-top-color:var(--accent);
+  animation:spin .7s linear infinite;
+  display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<!-- Login -->
+<!-- ══════ LOGIN ══════ -->
 <div id="loginPage">
   <div class="loginBox">
     <div class="loginLogo">
-      <h1>🚗 YedidiaGMC</h1>
-      <p>פאנל ניהול</p>
+      <div class="logo-icon">🚗</div>
+      <h1>YedidiaGMC</h1>
+      <p>Admin Control Center</p>
     </div>
     <div class="err" id="loginErr"></div>
-    <div class="field"><label>אימייל</label><input type="email" id="loginEmail" placeholder="admin@yedidiagmc.local"></div>
-    <div class="field"><label>סיסמה</label><input type="password" id="loginPwd"></div>
-    <button class="btnPrimary" id="loginBtn">כניסה</button>
+    <div class="field">
+      <label>אימייל</label>
+      <input type="email" id="loginEmail" placeholder="admin@yedidiagmc.local" autocomplete="username">
+    </div>
+    <div class="field" style="margin-bottom:24px">
+      <label>סיסמה</label>
+      <input type="password" id="loginPwd" placeholder="••••••••••" autocomplete="current-password">
+    </div>
+    <button class="btnPrimary" id="loginBtn">כניסה למערכת</button>
   </div>
 </div>
 
-<!-- App -->
+<!-- ══════ APP ══════ -->
 <div id="app">
-  <div class="topbar">
-    <span class="brand">🚗 YedidiaGMC Admin</span>
-    <div class="tabs">
-      <button class="tab active" onclick="showPage('dashboard')">📊 דשבורד</button>
-      <button class="tab" onclick="showPage('users')">👥 משתמשים</button>
-      <button class="tab" onclick="showPage('createUser')">➕ צור משתמש</button>
-      <button class="tab" onclick="showPage('vehicles')">🚗 רכבים</button>
-      <button class="tab" onclick="showPage('logs')">📋 לוג</button>
-    </div>
-    <button class="btnLogout btnSm" onclick="logout()">התנתק</button>
-  </div>
-  <div class="main">
 
-    <!-- Dashboard -->
-    <div class="page active" id="page-dashboard">
-      <div class="pageTitle">דשבורד</div>
-      <div class="statsRow" id="statsRow"></div>
-      <div class="secHeader"><span class="sectionTitle" style="margin:0">ממתינים לאישור</span></div>
-      <div class="tableWrap"><table id="pendingTable">
-        <thead><tr><th>שם</th><th>אימייל</th><th>טלפון</th><th>VIN</th><th>תאריך</th><th>פעולות</th></tr></thead>
-        <tbody id="pendingBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
-      </table></div>
-    </div>
-
-    <!-- Users -->
-    <div class="page" id="page-users">
-      <div class="pageTitle">משתמשים</div>
-      <div class="filterBar">
-        <button class="filterBtn active" onclick="filterUsers('',this)">הכל</button>
-        <button class="filterBtn" onclick="filterUsers('pending',this)">ממתין</button>
-        <button class="filterBtn" onclick="filterUsers('approved',this)">מאושר</button>
-        <button class="filterBtn" onclick="filterUsers('suspended',this)">מושהה</button>
-        <button class="filterBtn" onclick="filterUsers('rejected',this)">נדחה</button>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="brand-icon">🚗</div>
+        <div>
+          <div class="brand-text">YedidiaGMC</div>
+          <div class="brand-sub">Admin Panel</div>
+        </div>
       </div>
-      <div class="tableWrap"><table>
-        <thead><tr><th>שם</th><th>אימייל</th><th>סטטוס</th><th>רישיון עד</th><th>ימים</th><th>VIN</th><th>Enrollment</th><th>פעולות</th></tr></thead>
-        <tbody id="usersBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
-      </table></div>
     </div>
 
-    <!-- Create User -->
-    <div class="page" id="page-createUser">
-      <div class="pageTitle">צור משתמש חדש</div>
-      <form id="createUserForm" onsubmit="submitCreateUser(event)">
-        <div class="formCard">
-          <h3>פרטים אישיים</h3>
-          <div class="formGrid">
-            <div class="field"><label>שם מלא *</label><input required id="cu_name" placeholder="ישראל כהן"></div>
-            <div class="field"><label>אימייל *</label><input required type="email" id="cu_email" placeholder="user@email.com"></div>
-            <div class="field"><label>טלפון</label><input id="cu_phone" placeholder="050-0000000"></div>
-            <div class="field"><label>סיסמה זמנית *</label><input required id="cu_password" placeholder="TempPass123!"></div>
-          </div>
-        </div>
-        <div class="formCard">
-          <h3>רכב</h3>
-          <div class="formGrid">
-            <div class="field"><label>VIN *</label><input required id="cu_vin" maxlength="17" placeholder="1GKKNLLS0NZ123456" oninput="this.value=this.value.toUpperCase()"></div>
-            <div class="field"><label>כינוי רכב</label><input id="cu_nickname" placeholder="הטנדר שלי"></div>
-          </div>
-        </div>
-        <div class="formCard">
-          <h3>חשבון myGMC</h3>
-          <div class="formGrid">
-            <div class="field"><label>אימייל GM</label><input type="email" id="cu_gmUser" placeholder="gm@email.com"></div>
-            <div class="field"><label>סיסמת GM</label><input type="password" id="cu_gmPass"></div>
-          </div>
-        </div>
-        <div class="formCard">
-          <h3>רישיון</h3>
-          <div class="formGrid">
-            <div class="field"><label>שנות רישיון</label><select id="cu_years"><option value="1">שנה אחת</option><option value="2">שנתיים</option><option value="3" selected>3 שנים</option><option value="5">5 שנים</option></select></div>
-          </div>
-        </div>
-        <button type="submit" class="btnPrimary" id="createUserBtn" style="min-width:160px">➕ צור משתמש</button>
-      </form>
-    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">ניהול</div>
+      <button class="nav-item active" onclick="showPage('dashboard',this)">
+        <div class="nav-icon">📊</div>
+        דשבורד
+        <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="showPage('users',this)">
+        <div class="nav-icon">👥</div>
+        משתמשים
+      </button>
+      <button class="nav-item" onclick="showPage('createUser',this)">
+        <div class="nav-icon">➕</div>
+        צור משתמש
+      </button>
 
-    <!-- Vehicles -->
-    <div class="page" id="page-vehicles">
-      <div class="pageTitle">רכבים</div>
-      <div class="tableWrap"><table>
-        <thead><tr><th>VIN</th><th>כינוי</th><th>דגם</th><th>שנה</th><th>בעלים</th><th>תאריך</th></tr></thead>
-        <tbody id="vehiclesBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
-      </table></div>
-    </div>
+      <div class="nav-section-label">מידע</div>
+      <button class="nav-item" onclick="showPage('vehicles',this)">
+        <div class="nav-icon">🚘</div>
+        רכבים
+      </button>
+      <button class="nav-item" onclick="showPage('logs',this)">
+        <div class="nav-icon">📋</div>
+        לוג פקודות
+      </button>
+    </nav>
 
-    <!-- Logs -->
-    <div class="page" id="page-logs">
-      <div class="pageTitle">לוג פקודות</div>
-      <div class="tableWrap"><table>
-        <thead><tr><th>משתמש</th><th>VIN</th><th>פקודה</th><th>מקור</th><th>סטטוס</th><th>זמן</th></tr></thead>
-        <tbody id="logsBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">טוען...</td></tr></tbody>
-      </table></div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">A</div>
+        <div>
+          <div class="user-name">Admin</div>
+          <div class="user-role">מנהל מערכת</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="התנתק">⏻</button>
+      </div>
     </div>
-
   </div>
-</div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="topbar">
+      <div class="page-heading" id="topbarTitle">דשבורד</div>
+      <div class="topbar-right">
+        <button class="refresh-btn" onclick="refreshCurrentPage()">↻ רענן</button>
+        <div class="dot"></div>
+        <span class="dot-label">מחובר</span>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- Dashboard -->
+      <div class="page active" id="page-dashboard">
+        <div class="statsRow" id="statsRow">
+          <div class="statCard c-blue"><span class="stat-icon">👥</span><div class="stat-val">—</div><div class="stat-lbl">משתמשים</div></div>
+          <div class="statCard c-orange"><span class="stat-icon">⏳</span><div class="stat-val">—</div><div class="stat-lbl">ממתינים</div></div>
+          <div class="statCard c-red"><span class="stat-icon">⚠️</span><div class="stat-val">—</div><div class="stat-lbl">פג תוקף בקרוב</div></div>
+          <div class="statCard c-green"><span class="stat-icon">🚘</span><div class="stat-val">—</div><div class="stat-lbl">רכבים פעילים</div></div>
+          <div class="statCard c-purple"><span class="stat-icon">⚡</span><div class="stat-val">—</div><div class="stat-lbl">פקודות</div></div>
+        </div>
+
+        <div class="sec-header">
+          <span class="sec-title">ממתינים לאישור</span>
+          <span class="sec-count" id="pendingCount">0</span>
+        </div>
+        <div class="tableCard">
+          <table>
+            <thead><tr><th>שם</th><th>אימייל</th><th>טלפון</th><th>VIN</th><th>תאריך</th><th>פעולות</th></tr></thead>
+            <tbody id="pendingBody"><tr><td colspan="6"><div class="empty"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div class="page" id="page-users">
+        <div class="filterBar">
+          <button class="filterBtn active" onclick="filterUsers('',this)">הכל</button>
+          <button class="filterBtn" onclick="filterUsers('pending',this)">ממתין</button>
+          <button class="filterBtn" onclick="filterUsers('approved',this)">מאושר</button>
+          <button class="filterBtn" onclick="filterUsers('suspended',this)">מושהה</button>
+          <button class="filterBtn" onclick="filterUsers('rejected',this)">נדחה</button>
+        </div>
+        <div class="tableCard">
+          <table>
+            <thead><tr><th>שם</th><th>אימייל</th><th>סטטוס</th><th>רישיון עד</th><th>ימים</th><th>VIN</th><th>BLE</th><th>פעולות</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="8"><div class="empty"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Create User -->
+      <div class="page" id="page-createUser">
+        <form id="createUserForm" onsubmit="submitCreateUser(event)">
+          <div class="formCard">
+            <div class="formCard-title">פרטים אישיים</div>
+            <div class="formGrid">
+              <div class="field"><label>שם מלא *</label><input required id="cu_name" placeholder="ישראל כהן"></div>
+              <div class="field"><label>אימייל *</label><input required type="email" id="cu_email" placeholder="user@email.com"></div>
+              <div class="field"><label>טלפון</label><input id="cu_phone" placeholder="050-0000000"></div>
+              <div class="field"><label>סיסמה זמנית *</label><input required id="cu_password" placeholder="TempPass123!"></div>
+            </div>
+          </div>
+          <div class="formCard">
+            <div class="formCard-title">פרטי רכב</div>
+            <div class="formGrid">
+              <div class="field"><label>VIN *</label><input required id="cu_vin" maxlength="17" placeholder="1GKKNLLS0NZ123456" oninput="this.value=this.value.toUpperCase()"></div>
+              <div class="field"><label>כינוי רכב</label><input id="cu_nickname" placeholder="הטנדר שלי"></div>
+            </div>
+          </div>
+          <div class="formCard">
+            <div class="formCard-title">חשבון myGMC / OnStar</div>
+            <div class="formGrid">
+              <div class="field"><label>אימייל GM</label><input type="email" id="cu_gmUser" placeholder="gm@email.com"></div>
+              <div class="field"><label>סיסמת GM</label><input type="password" id="cu_gmPass"></div>
+            </div>
+          </div>
+          <div class="formCard">
+            <div class="formCard-title">הגדרות רישיון</div>
+            <div class="formGrid">
+              <div class="field">
+                <label>תקופת רישיון</label>
+                <select id="cu_years">
+                  <option value="1">שנה אחת</option>
+                  <option value="2">שנתיים</option>
+                  <option value="3" selected>3 שנים</option>
+                  <option value="5">5 שנים</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btnPrimary" id="createUserBtn" style="width:auto;min-width:180px;padding:13px 28px">
+            ➕ צור משתמש
+          </button>
+        </form>
+      </div>
+
+      <!-- Vehicles -->
+      <div class="page" id="page-vehicles">
+        <div class="tableCard">
+          <table>
+            <thead><tr><th>VIN</th><th>כינוי</th><th>דגם</th><th>שנה</th><th>בעלים</th><th>תאריך</th></tr></thead>
+            <tbody id="vehiclesBody"><tr><td colspan="6"><div class="empty"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Logs -->
+      <div class="page" id="page-logs">
+        <div class="tableCard">
+          <table>
+            <thead><tr><th>משתמש</th><th>VIN</th><th>פקודה</th><th>מקור</th><th>סטטוס</th><th>זמן</th></tr></thead>
+            <tbody id="logsBody"><tr><td colspan="6"><div class="empty"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /content -->
+</div><!-- /app -->
 
 <!-- Credentials Modal -->
 <div class="overlay" id="credOverlay">
   <div class="modal">
     <h2>✅ משתמש נוצר בהצלחה</h2>
-    <p style="color:var(--sub);font-size:13px;margin-bottom:14px">שלח את הפרטים הבאים ללקוח:</p>
+    <p class="modal-sub">שלח את הפרטים הבאים ללקוח:</p>
     <div class="credBox" id="credBox"></div>
-    <button class="btnPrimary" onclick="copyCredentials()" style="width:auto;margin-left:8px">📋 העתק</button>
-    <button onclick="closeCredModal()" style="background:rgba(255,255,255,.06);color:var(--sub)">סגור</button>
+    <div class="modal-actions">
+      <button class="btnCopy" onclick="copyCredentials()">📋 העתק ללוח</button>
+      <button class="btnClose" onclick="closeCredModal()">סגור</button>
+    </div>
   </div>
 </div>
 
 <!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><span class="toast-msg" id="toastMsg"></span></div>
 
 <script>
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -235,6 +643,15 @@ let API = (params.get('api') || localStorage.getItem('ygmc_api') || '/api').repl
 if (params.get('api')) localStorage.setItem('ygmc_api', API);
 
 let statsTimer = null;
+let currentPage = 'dashboard';
+
+const PAGE_TITLES = {
+  dashboard: 'דשבורד',
+  users: 'משתמשים',
+  createUser: 'צור משתמש חדש',
+  vehicles: 'רכבים',
+  logs: 'לוג פקודות',
+};
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 function getToken() { return localStorage.getItem('ygmc_token'); }
@@ -265,7 +682,10 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const pwd = document.getElementById('loginPwd').value;
   const errEl = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
   errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'מתחבר...';
   try {
     const res = await fetch(API + '/auth/login', {
       method: 'POST',
@@ -280,12 +700,17 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     }
     setToken(data.token);
     showApp();
-  } catch (e) {
+  } catch {
     errEl.textContent = 'שגיאת חיבור לשרת';
     errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'כניסה למערכת';
   }
 });
-document.getElementById('loginPwd').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+document.getElementById('loginPwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
 
 // ─── App init ─────────────────────────────────────────────────────────────────
 function showApp() {
@@ -300,25 +725,34 @@ window.addEventListener('load', () => {
 });
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
-function showPage(id) {
+function showPage(id, navEl) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbarTitle').textContent = PAGE_TITLES[id] || id;
+  currentPage = id;
   if (id === 'dashboard') loadDashboard();
   else if (id === 'users') loadUsers('');
   else if (id === 'vehicles') loadVehicles();
   else if (id === 'logs') loadLogs();
 }
 
+function refreshCurrentPage() {
+  if (currentPage === 'dashboard') loadDashboard();
+  else if (currentPage === 'users') loadUsers(currentStatusFilter);
+  else if (currentPage === 'vehicles') loadVehicles();
+  else if (currentPage === 'logs') loadLogs();
+}
+
 // ─── Toast ────────────────────────────────────────────────────────────────────
 let toastTimer;
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
-  el.textContent = msg;
+  document.getElementById('toastMsg').textContent = msg;
   el.className = 'toast show ' + type;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
 // ─── Format helpers ───────────────────────────────────────────────────────────
@@ -328,19 +762,21 @@ function fmtDate(d) {
 }
 function daysLeft(d) {
   if (!d) return '—';
-  const ms = new Date(d) - new Date();
-  const days = Math.floor(ms / 86400000);
-  if (days < 0) return '<span style="color:var(--accent)">פג תוקף</span>';
-  if (days < 30) return '<span style="color:var(--orange)">' + days + '</span>';
-  return days;
+  const days = Math.floor((new Date(d) - new Date()) / 86400000);
+  if (days < 0) return `<span style="color:var(--accent);font-weight:700">פג תוקף</span>`;
+  if (days < 30) return `<span style="color:var(--orange);font-weight:700">${days}</span>`;
+  return `<span style="color:var(--green)">${days}</span>`;
 }
 function statusBadge(s) {
-  const map = { pending: ['ממתין','pending'], approved: ['מאושר','approved'], suspended: ['מושהה','suspended'], rejected: ['נדחה','rejected'] };
-  const [lbl, cls] = map[s] || [s, 'pending'];
+  const map = { pending:['ממתין','pending'], approved:['מאושר','approved'], suspended:['מושהה','suspended'], rejected:['נדחה','rejected'] };
+  const [lbl, cls] = map[s] || [s,'pending'];
   return `<span class="badge badge-${cls}">${lbl}</span>`;
 }
 function cmdStatusColor(s) {
   return s === 'success' ? 'var(--green)' : s === 'failed' ? 'var(--accent)' : s === 'sent' ? 'var(--orange)' : 'var(--muted)';
+}
+function emptyRow(cols, msg) {
+  return `<tr><td colspan="${cols}"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">${msg}</div></div></td></tr>`;
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -352,12 +788,17 @@ async function loadStats() {
   try {
     const res = await apiFetch('/admin/stats');
     const d = await res.json();
+    const pending = d.pendingApproval ?? 0;
+    const badge = document.getElementById('pendingBadge');
+    badge.textContent = pending;
+    badge.style.display = pending > 0 ? 'inline-block' : 'none';
+    document.getElementById('pendingCount').textContent = pending;
     document.getElementById('statsRow').innerHTML = `
-      <div class="statCard"><div class="val">${d.totalUsers ?? 0}</div><div class="lbl">משתמשים</div></div>
-      <div class="statCard"><div class="val" style="color:var(--orange)">${d.pendingApproval ?? 0}</div><div class="lbl">ממתינים</div></div>
-      <div class="statCard"><div class="val" style="color:var(--accent)">${d.expiringLicenses ?? 0}</div><div class="lbl">פג תוקף בקרוב</div></div>
-      <div class="statCard"><div class="val">${d.activeVehicles ?? 0}</div><div class="lbl">רכבים</div></div>
-      <div class="statCard"><div class="val">${d.totalCommands ?? 0}</div><div class="lbl">פקודות</div></div>
+      <div class="statCard c-blue"><span class="stat-icon">👥</span><div class="stat-val">${d.totalUsers ?? 0}</div><div class="stat-lbl">משתמשים</div></div>
+      <div class="statCard c-orange"><span class="stat-icon">⏳</span><div class="stat-val">${pending}</div><div class="stat-lbl">ממתינים</div></div>
+      <div class="statCard c-red"><span class="stat-icon">⚠️</span><div class="stat-val">${d.expiringLicenses ?? 0}</div><div class="stat-lbl">פג תוקף בקרוב</div></div>
+      <div class="statCard c-green"><span class="stat-icon">🚘</span><div class="stat-val">${d.activeVehicles ?? 0}</div><div class="stat-lbl">רכבים פעילים</div></div>
+      <div class="statCard c-purple"><span class="stat-icon">⚡</span><div class="stat-val">${d.totalCommands ?? 0}</div><div class="stat-lbl">פקודות</div></div>
     `;
   } catch {}
 }
@@ -367,15 +808,17 @@ async function loadPending() {
     const res = await apiFetch('/admin/users?status=pending');
     const users = await res.json();
     const tbody = document.getElementById('pendingBody');
-    if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">אין ממתינים לאישור</td></tr>'; return; }
+    if (!users.length) { tbody.innerHTML = emptyRow(6, 'אין ממתינים לאישור ✓'); return; }
     tbody.innerHTML = users.map(u => `
       <tr>
-        <td>${u.name}</td><td>${u.email}</td><td>${u.phone || '—'}</td>
-        <td style="font-family:monospace">${u.vin || '—'}</td>
-        <td>${fmtDate(u.created_at)}</td>
+        <td style="font-weight:600">${u.name}</td>
+        <td style="color:var(--sub)">${u.email}</td>
+        <td>${u.phone || '—'}</td>
+        <td><span class="mono">${u.vin || '—'}</span></td>
+        <td style="color:var(--sub);font-size:12px">${fmtDate(u.created_at)}</td>
         <td><div class="actBtns">
-          <button class="btnSm btnGreen" onclick="approveUser('${u.id}')">✅ אשר</button>
-          <button class="btnSm btnRed" onclick="rejectUser('${u.id}')">❌ דחה</button>
+          <button class="btnSm btnGreen" onclick="approveUser('${u.id}')">✓ אשר</button>
+          <button class="btnSm btnRed" onclick="rejectUser('${u.id}')">✕ דחה</button>
         </div></td>
       </tr>`).join('');
   } catch {}
@@ -392,25 +835,33 @@ function filterUsers(status, btn) {
 }
 
 async function loadUsers(status) {
+  document.getElementById('usersBody').innerHTML = `<tr><td colspan="8"><div class="empty"><div class="spinner"></div></div></td></tr>`;
   try {
     const qs = status ? '?status=' + status : '';
     const res = await apiFetch('/admin/users' + qs);
     const users = await res.json();
     const tbody = document.getElementById('usersBody');
-    if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">אין משתמשים</td></tr>'; return; }
+    if (!users.length) { tbody.innerHTML = emptyRow(8,'אין משתמשים'); return; }
     tbody.innerHTML = users.map(u => {
       const acts = [];
-      if (u.status === 'pending') { acts.push(`<button class="btnSm btnGreen" onclick="approveUser('${u.id}')">אשר</button>`); acts.push(`<button class="btnSm btnRed" onclick="rejectUser('${u.id}')">דחה</button>`); }
+      if (u.status === 'pending') {
+        acts.push(`<button class="btnSm btnGreen" onclick="approveUser('${u.id}')">אשר</button>`);
+        acts.push(`<button class="btnSm btnRed" onclick="rejectUser('${u.id}')">דחה</button>`);
+      }
       if (u.status === 'approved') acts.push(`<button class="btnSm btnOrange" onclick="suspendUser('${u.id}')">השהה</button>`);
       if (u.status === 'suspended') acts.push(`<button class="btnSm btnGreen" onclick="approveUser('${u.id}')">הפעל</button>`);
-      if (u.status !== 'rejected') { acts.push(`<button class="btnSm btnBlue" onclick="extendLicense('${u.id}',1)">+1ש</button>`); acts.push(`<button class="btnSm btnBlue" onclick="extendLicense('${u.id}',3)">+3ש</button>`); }
+      if (u.status !== 'rejected') {
+        acts.push(`<button class="btnSm btnBlue" onclick="extendLicense('${u.id}',1)">+1ש</button>`);
+        acts.push(`<button class="btnSm btnBlue" onclick="extendLicense('${u.id}',3)">+3ש</button>`);
+      }
       return `<tr>
-        <td>${u.name}</td><td>${u.email}</td>
+        <td style="font-weight:600">${u.name}</td>
+        <td style="color:var(--sub)">${u.email}</td>
         <td>${statusBadge(u.status)}</td>
-        <td>${fmtDate(u.license_expires_at)}</td>
+        <td style="font-size:12px">${fmtDate(u.license_expires_at)}</td>
         <td>${daysLeft(u.license_expires_at)}</td>
-        <td style="font-family:monospace;font-size:12px">${u.vin || '—'}</td>
-        <td>${u.enrollment_count > 0 ? '<span style="color:var(--green)">✓</span>' : '—'}</td>
+        <td><span class="mono">${u.vin || '—'}</span></td>
+        <td>${u.enrollment_count > 0 ? '<span style="color:var(--green);font-weight:700">✓ BLE</span>' : '<span style="color:var(--muted)">—</span>'}</td>
         <td><div class="actBtns">${acts.join('')}</div></td>
       </tr>`;
     }).join('');
@@ -419,25 +870,25 @@ async function loadUsers(status) {
 
 // ─── User actions ─────────────────────────────────────────────────────────────
 async function approveUser(id) {
-  try { await apiFetch('/admin/users/'+id+'/approve', {method:'POST'}); toast('משתמש אושר'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+  try { await apiFetch('/admin/users/'+id+'/approve',{method:'POST'}); toast('משתמש אושר ✓'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
 }
 async function rejectUser(id) {
   if (!confirm('לדחות משתמש זה?')) return;
-  try { await apiFetch('/admin/users/'+id+'/reject', {method:'POST'}); toast('משתמש נדחה'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+  try { await apiFetch('/admin/users/'+id+'/reject',{method:'POST'}); toast('משתמש נדחה'); loadDashboard(); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
 }
 async function suspendUser(id) {
   if (!confirm('להשהות משתמש זה?')) return;
-  try { await apiFetch('/admin/users/'+id+'/suspend', {method:'POST'}); toast('משתמש הושהה','error'); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+  try { await apiFetch('/admin/users/'+id+'/suspend',{method:'POST'}); toast('משתמש הושהה','error'); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
 }
 async function extendLicense(id, years) {
-  try { await apiFetch('/admin/users/'+id+'/extend-license', {method:'POST', body:JSON.stringify({years})}); toast(`רישיון הוארך ב-${years} שנים`); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
+  try { await apiFetch('/admin/users/'+id+'/extend-license',{method:'POST',body:JSON.stringify({years})}); toast(`רישיון הוארך ב-${years} שנים ✓`); loadUsers(currentStatusFilter); } catch { toast('שגיאה','error'); }
 }
 
 // ─── Create User ──────────────────────────────────────────────────────────────
 async function submitCreateUser(e) {
   e.preventDefault();
   const btn = document.getElementById('createUserBtn');
-  btn.disabled = true; btn.textContent = 'יוצר...';
+  btn.disabled = true; btn.textContent = '⟳ יוצר...';
   try {
     const body = {
       name: document.getElementById('cu_name').value,
@@ -450,59 +901,63 @@ async function submitCreateUser(e) {
       gmPassword: document.getElementById('cu_gmPass').value,
       licenseYears: parseInt(document.getElementById('cu_years').value),
     };
-    const res = await apiFetch('/admin/users', {method:'POST', body: JSON.stringify(body)});
+    const res = await apiFetch('/admin/users',{method:'POST',body:JSON.stringify(body)});
     const data = await res.json();
-    if (!res.ok) { toast(data.message || 'שגיאה', 'error'); return; }
+    if (!res.ok) { toast(data.message || 'שגיאה','error'); return; }
     showCredModal(data);
     e.target.reset();
-  } catch { toast('שגיאה ביצירת משתמש', 'error'); }
+  } catch { toast('שגיאה ביצירת משתמש','error'); }
   finally { btn.disabled = false; btn.textContent = '➕ צור משתמש'; }
 }
 
 let lastCreds = '';
 function showCredModal(d) {
-  lastCreds = `📧 Email: ${d.email}\n🔑 Password: ${d.password}\n🚗 VIN: ${d.vin}\n📅 License until: ${fmtDate(d.licenseExpiresAt)}`;
+  lastCreds = `📧 Email:    ${d.email}\n🔑 Password: ${d.password}\n🚗 VIN:      ${d.vin}\n📅 License:  ${fmtDate(d.licenseExpiresAt)}`;
   document.getElementById('credBox').textContent = lastCreds;
   document.getElementById('credOverlay').classList.add('show');
 }
 function closeCredModal() { document.getElementById('credOverlay').classList.remove('show'); }
 function copyCredentials() {
-  navigator.clipboard.writeText(lastCreds).then(() => toast('הועתק ללוח')).catch(() => toast('לא ניתן להעתיק', 'error'));
+  navigator.clipboard.writeText(lastCreds)
+    .then(() => toast('הועתק ללוח ✓'))
+    .catch(() => toast('לא ניתן להעתיק','error'));
 }
 
 // ─── Vehicles ─────────────────────────────────────────────────────────────────
 async function loadVehicles() {
+  document.getElementById('vehiclesBody').innerHTML = `<tr><td colspan="6"><div class="empty"><div class="spinner"></div></div></td></tr>`;
   try {
     const res = await apiFetch('/admin/vehicles');
     const vehicles = await res.json();
     const tbody = document.getElementById('vehiclesBody');
-    if (!vehicles.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">אין רכבים</td></tr>'; return; }
+    if (!vehicles.length) { tbody.innerHTML = emptyRow(6,'אין רכבים רשומים'); return; }
     tbody.innerHTML = vehicles.map(v => `
       <tr>
-        <td style="font-family:monospace">${v.vin}</td>
+        <td><span class="mono">${v.vin}</span></td>
         <td>${v.nickname || '—'}</td>
         <td>${v.model || v.make || '—'}</td>
         <td>${v.year || '—'}</td>
-        <td>${v.owner_name || '—'}</td>
-        <td>${fmtDate(v.created_at)}</td>
+        <td style="font-weight:500">${v.owner_name || '—'}</td>
+        <td style="color:var(--sub);font-size:12px">${fmtDate(v.created_at)}</td>
       </tr>`).join('');
   } catch {}
 }
 
 // ─── Logs ─────────────────────────────────────────────────────────────────────
 async function loadLogs() {
+  document.getElementById('logsBody').innerHTML = `<tr><td colspan="6"><div class="empty"><div class="spinner"></div></div></td></tr>`;
   try {
     const res = await apiFetch('/admin/command-logs');
     const logs = await res.json();
     const tbody = document.getElementById('logsBody');
-    if (!logs.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">אין פקודות</td></tr>'; return; }
+    if (!logs.length) { tbody.innerHTML = emptyRow(6,'אין פקודות בלוג'); return; }
     tbody.innerHTML = logs.map(l => `
       <tr>
-        <td>${l.user_name || l.user_id || '—'}</td>
-        <td style="font-family:monospace;font-size:12px">${l.vin || '—'}</td>
-        <td>${l.command}</td>
-        <td>${l.source}</td>
-        <td style="color:${cmdStatusColor(l.status)}">${l.status}</td>
+        <td style="font-weight:500">${l.user_name || l.user_id || '—'}</td>
+        <td><span class="mono">${l.vin || '—'}</span></td>
+        <td style="font-weight:600">${l.command}</td>
+        <td style="color:var(--sub)">${l.source}</td>
+        <td style="color:${cmdStatusColor(l.status)};font-weight:700">${l.status}</td>
         <td style="font-size:12px;color:var(--sub)">${new Date(l.executed_at).toLocaleString('he-IL')}</td>
       </tr>`).join('');
   } catch {}
