@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>YedidiaGMC — Admin</title>
+<title>Yedidia Motors — Admin</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -91,8 +91,10 @@ a { color: inherit; text-decoration: none; }
   text-align: center;
 }
 .login-wordmark h1 {
-  font-size: 13px; font-weight: 700; letter-spacing: .35em;
-  text-transform: uppercase; color: var(--silver);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px; font-weight: 400; letter-spacing: .18em;
+  text-transform: uppercase; color: #ffffff;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.6);
 }
 .login-wordmark .divline {
   display: flex; align-items: center; gap: 12px; margin-top: 8px;
@@ -105,7 +107,7 @@ a { color: inherit; text-decoration: none; }
   background: linear-gradient(90deg, var(--border2), transparent);
 }
 .login-wordmark .divline em {
-  font-style: normal; font-size: 10px; color: var(--muted); letter-spacing: .15em;
+  font-style: normal; font-size: 9px; color: var(--sub); letter-spacing: .25em; text-transform: uppercase;
 }
 
 .loginBox {
@@ -172,11 +174,12 @@ a { color: inherit; text-decoration: none; }
 }
 .sb-brand { display: flex; flex-direction: column; }
 .sb-name {
-  font-size: 16px; font-weight: 900; color: var(--text);
-  letter-spacing: -.02em;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; font-weight: 400; color: #ffffff;
+  letter-spacing: .12em;
 }
 .sb-name span { color: var(--accent); }
-.sb-caption { font-size: 10px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; margin-top: 3px; }
+.sb-caption { font-size: 9px; color: var(--muted); letter-spacing: .18em; text-transform: uppercase; margin-top: 2px; }
 .sb-redline {
   width: 28px; height: 2px; background: var(--accent);
   border-radius: 1px; margin-top: 10px;
@@ -486,7 +489,7 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
 <div id="loginPage">
   <div class="login-wrap">
     <div class="login-wordmark">
-      <h1>YEDIDIA&nbsp;&nbsp;GMC</h1>
+      <h1>YEDIDIA&nbsp;MOTORS</h1>
       <div class="divline">
         <span></span><em>ADMIN CONTROL CENTER</em><span></span>
       </div>
@@ -516,7 +519,7 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
   <div class="sidebar">
     <div class="sb-top">
       <div class="sb-brand">
-        <div class="sb-name">Yedidia<span>GMC</span></div>
+        <div class="sb-name">YEDIDIA <span>MOTORS</span></div>
         <div class="sb-caption">Admin Panel</div>
         <div class="sb-redline"></div>
       </div>
